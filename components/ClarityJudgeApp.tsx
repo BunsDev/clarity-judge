@@ -21,9 +21,8 @@ import {
   saveCustomAxes,
   saveSettings,
 } from "@/lib/storage";
-import { ApiKeySettings } from "./ApiKeySettings";
+import { API_KEY_INPUT_ID, ApiKeyBanner } from "./ApiKeyBanner";
 import { AxisSelector } from "./AxisSelector";
-import { DemoModeBanner } from "./DemoModeBanner";
 import { ResultsPanel } from "./ResultsPanel";
 import { TextEditor } from "./TextEditor";
 import { ThemeToggle } from "./ThemeToggle";
@@ -151,6 +150,18 @@ export function ClarityJudgeApp({ serverHasKey, deployTarget }: Props) {
     setApiKey(null);
   }
 
+  /** Scroll to the key banner and focus its input (used by the auth-error action). */
+  function focusKeyInput() {
+    if (!apiKey && !serverHasKey) {
+      document.getElementById(API_KEY_INPUT_ID)?.focus();
+      return;
+    }
+    // A key exists, so the input is hidden until "Replace key" is pressed; do that for the user.
+    const button = Array.from(document.querySelectorAll("button")).find((b) => /replace key|use my own key/i.test(b.textContent ?? ""));
+    button?.click();
+    requestAnimationFrame(() => document.getElementById(API_KEY_INPUT_ID)?.focus());
+  }
+
   function removeCustomAxis(id: string) {
     setCustomAxes((prev) => prev.filter((a) => a.id !== id));
     setSelectedIds((prev) => {
@@ -162,7 +173,6 @@ export function ClarityJudgeApp({ serverHasKey, deployTarget }: Props) {
   }
 
   const modeLabel = !hydrated ? "" : demoMode ? "Demo" : apiKey ? "Live · browser key" : "Live · server key";
-  const keyStatus = !hydrated ? "…" : apiKey ? "Browser" : serverHasKey ? "Server" : "None";
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -188,6 +198,17 @@ export function ClarityJudgeApp({ serverHasKey, deployTarget }: Props) {
         </div>
       </header>
 
+      {/* API key: the first thing on the page, because without one nothing else is real. */}
+      <ApiKeyBanner
+        serverHasKey={serverHasKey}
+        deployTarget={deployTarget}
+        hasBrowserKey={apiKey !== null}
+        hydrated={hydrated}
+        onSave={handleSaveApiKey}
+        onClear={handleClearApiKey}
+        disabled={running}
+      />
+
       {/* Thesis strip */}
       <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-line px-4 py-3 sm:px-6">
         <span className="chip !bg-pink !text-[#1e1e1e]">Decisions, not scores</span>
@@ -201,22 +222,9 @@ export function ClarityJudgeApp({ serverHasKey, deployTarget }: Props) {
       <div className="grid flex-1 gap-4 p-4 sm:p-6 lg:grid-cols-2 2xl:grid-cols-12">
         <div className="space-y-4 2xl:contents">
           <div className="space-y-4 2xl:col-span-4">
-            {hydrated && demoMode && <DemoModeBanner />}
             <Window title="01 · Text" meta={running ? "Locked" : "Editable"} bodyClassName="">
               <TextEditor value={text} onChange={setText} onLoadSample={() => setText(SAMPLE_TEXT)} onRun={() => void run()} disabled={running} />
             </Window>
-            {hydrated && (
-              <Window title="API key" meta={keyStatus}>
-                <ApiKeySettings
-                  serverHasKey={serverHasKey}
-                  deployTarget={deployTarget}
-                  hasBrowserKey={apiKey !== null}
-                  onSave={handleSaveApiKey}
-                  onClear={handleClearApiKey}
-                  disabled={running}
-                />
-              </Window>
-            )}
           </div>
 
           <div className="space-y-4 2xl:col-span-3">
@@ -258,6 +266,7 @@ export function ClarityJudgeApp({ serverHasKey, deployTarget }: Props) {
               threshold={threshold}
               onThresholdChange={setThreshold}
               onRetry={() => void run()}
+              onChangeKey={focusKeyInput}
               demoMode={demoMode}
               runId={runId}
             />

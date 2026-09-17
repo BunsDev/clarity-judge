@@ -108,9 +108,8 @@ components/
   ResultsPanel.tsx       Summary + result cards + loading / error / empty states
   AxisResultCard.tsx     Verdict, confidence bar, evidence, flag
   SummaryBanner.tsx      Totals and the one-line takeaway
-  DemoModeBanner.tsx     Yellow "no key" banner
-  ApiKeySettings.tsx     Masked API-key field (never displays the key)
-  ApiKeySetupGuide.tsx   Collapsible .env.local setup steps
+  ApiKeyBanner.tsx       Full-width key banner under the header (masked input, never displays the key)
+  ApiKeySetupGuide.tsx   Environment-aware server-side setup steps
   Window.tsx             Bordered panel with an inverted mono title bar
   ThemeToggle.tsx        Dark / light switch, persisted in localStorage
   icons.tsx              Tiny inline SVG icons
@@ -123,6 +122,7 @@ lib/
   results.ts             Summary maths, flagging, confidence bands
   storage.ts             localStorage helpers (custom axes, settings, browser key)
   redact.ts              Masks key-shaped strings in error output
+  errors.ts              Turns an error code into a title, explanation, and next actions
 scripts/
   check-secrets.mjs      Secret scanner (pre-commit + CI)
   pre-commit             Git hook installed by `npm install`
@@ -162,7 +162,7 @@ For "pick one" questions Jev returns a confidence value directly. For Yes/No que
 There are two ways to give the app a key. Either way, the key is only ever sent to this app's own `/api/judge` route, which forwards it to TypeSafe.
 
 1. **`.env.local` (recommended on your own machine).** Copy `.env.local.example`, paste the key, restart the dev server. The file is gitignored. The server reads it; the browser only learns a true/false "a key exists".
-2. **In the browser.** Open the **API key** panel at the top of the page and paste the key into the password field. It's dots while you type, it's never displayed again after saving, and there's no "show" button — so it's safe to have the app open on a shared screen. It persists in that browser's localStorage and is sent as a request header. A browser key overrides the server key. Anyone using the same browser profile could read localStorage, so on a shared computer prefer option 1. **Remove key from this browser** wipes it.
+2. **In the browser.** Use the **API key banner** at the top of the page and paste the key into the password field. It's dots while you type, it's never displayed again after saving, and there's no "show" button — so it's safe to have the app open on a shared screen. It persists in that browser's localStorage and is sent as a request header. A browser key overrides the server key. Anyone using the same browser profile could read localStorage, so on a shared computer prefer option 1. **Remove key from this browser** wipes it.
 
 ### Guard rails against leaking a key
 
@@ -184,7 +184,7 @@ If a key does slip out somewhere (a screenshot, a pasted chat), rotate it at typ
 | *TypeSafe is overloaded right now.* | HTTP 529/503. Retry shortly. |
 | *Needs review* on a single card | Jev's answer for that check was missing or malformed. The rest of the run is fine. |
 
-Every error box has a **Retry** button and a "Raw error details" section with the exact response, so nothing fails silently.
+Every error is shown as a window with a plain-language title, an explanation of what happened and why, and the actions that fix it (Retry, Add credits, Change key). The exact upstream response is one click away under "Raw response", so nothing fails silently.
 
 ## Scripts
 

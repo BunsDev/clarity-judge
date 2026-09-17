@@ -4,6 +4,7 @@ import type { AxisResult, JudgmentStatus, Summary } from "@/types/results";
 import type { JevErrorPayload } from "@/types/jev";
 import { AxisResultCard } from "./AxisResultCard";
 import { SummaryBanner } from "./SummaryBanner";
+import { explainError } from "@/lib/errors";
 import { WarningIcon } from "./icons";
 
 type Props = {
@@ -14,12 +15,15 @@ type Props = {
   threshold: number;
   onThresholdChange: (value: number) => void;
   onRetry: () => void;
+  /** Jump to the API key banner (used by auth errors). */
+  onChangeKey: () => void;
   demoMode: boolean;
   /** Increments per run so cards re-animate on each new judgment. */
   runId: number;
 };
 
-export function ResultsPanel({ status, results, summary, error, threshold, onThresholdChange, onRetry, demoMode, runId }: Props) {
+export function ResultsPanel({ status, results, summary, error, threshold, onThresholdChange, onRetry, onChangeKey, demoMode, runId }: Props) {
+  const explained = error ? explainError(error) : null;
   return (
     <div>
       {/* Toolbar: the threshold is a results-view setting, so it lives here rather than in the title bar. */}
@@ -42,31 +46,53 @@ export function ResultsPanel({ status, results, summary, error, threshold, onThr
       </div>
 
       <div className="space-y-3 p-3">
-        {status === "error" && error && (
-          <div role="alert" className="border border-pink bg-pink/10 p-4 text-sm text-ink">
-            <div className="flex items-start gap-3">
-              <WarningIcon className="mt-0.5 h-4 w-4 shrink-0 text-pink" />
-              <div className="min-w-0 flex-1 space-y-2">
-                <p className="font-medium">{error.error}</p>
-                {error.raw && (
-                  <details className="text-xs">
-                    <summary className="cursor-pointer font-mono text-[10px] uppercase tracking-[0.14em] text-ink-2">Raw error</summary>
-                    <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap border border-line bg-bg p-2 font-mono text-[11px] text-ink-2">
-                      {error.status ? `HTTP ${error.status} · ` : ""}
-                      {error.code}
-                      {"\n"}
-                      {error.raw}
-                    </pre>
-                  </details>
-                )}
-                <button
-                  type="button"
-                  onClick={onRetry}
-                  className="press bg-ink px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-bg hover:bg-pink hover:text-[#1e1e1e]"
-                >
-                  Retry
-                </button>
-              </div>
+        {status === "error" && error && explained && (
+          <div role="alert" className="window border border-pink bg-panel">
+            <div className="titlebar flex h-7 items-center gap-2 px-3 font-mono text-[11px] uppercase tracking-[0.14em] !bg-pink !text-[#1e1e1e]">
+              <WarningIcon className="h-3.5 w-3.5" />
+              <span>Run failed{error.status ? ` · HTTP ${error.status}` : ""}</span>
+            </div>
+            <div className="space-y-3 p-4 text-sm">
+              <p className="text-base font-medium leading-snug text-ink">{explained.title}</p>
+              <p className="leading-relaxed text-ink-2">{explained.detail}</p>
+              {explained.actions.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {explained.actions.map((action) =>
+                    action.kind === "link" ? (
+                      <a
+                        key={action.label}
+                        href={action.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="press bg-ink px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-bg hover:bg-pink hover:text-[#1e1e1e]"
+                      >
+                        {action.label} ↗
+                      </a>
+                    ) : (
+                      <button
+                        key={action.label}
+                        type="button"
+                        onClick={action.kind === "retry" ? onRetry : onChangeKey}
+                        className={`press px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] ${
+                          action.kind === "retry"
+                            ? "border border-ink text-ink hover:bg-ink hover:text-bg"
+                            : "border border-line text-ink-2 hover:border-ink hover:text-ink"
+                        }`}
+                      >
+                        {action.label}
+                      </button>
+                    ),
+                  )}
+                </div>
+              )}
+              {error.raw && (
+                <details className="text-xs">
+                  <summary className="cursor-pointer font-mono text-[10px] uppercase tracking-[0.14em] text-muted hover:text-ink">
+                    Raw response · {error.code}
+                  </summary>
+                  <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap border border-line bg-bg p-2 font-mono text-[11px] text-ink-2">{error.raw}</pre>
+                </details>
+              )}
             </div>
           </div>
         )}
