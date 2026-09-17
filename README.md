@@ -1,213 +1,134 @@
 # Clarity Judge
 
-A small, beginner-friendly web app that checks a piece of writing against **separate, named quality checks** — hedging, em dash overuse, filler phrases, passive voice, clarity, tone, and actionability — each answered by [TypeSafe AI's Jev model](https://typesafe.ai) with its own verdict and confidence score. You can also write your own checks.
+Evaluate writing against **separate, named checks** with TypeSafe AI's Jev: hedging, em dash overuse, clarity, filler phrases, tone, passive voice, and actionability. Inspect each verdict, confidence signal, and supporting sentence rather than relying on one opaque overall score.
 
-It works out of the box in **demo mode** (no API key needed) and switches to real Jev calls the moment you add a key.
+This is an **independent community project** under `BunsDev`, not an official TypeSafe product. It evaluates supplied writing; it does not generate a rewrite or establish that a passage is factually correct.
 
-## Why separate checks instead of one score?
+[Contributing](CONTRIBUTING.md) · [Agent guide](AGENTS.md) · [TypeSafe API reference](https://docs.typesafe.ai/api)
 
-Asking a model "is this good?" gets you a number that's easy to game and hard to trust. Nobody can tell you *why* it's a 7.
+## Start with the no-key demo
 
-Asking "does this text unnecessarily hedge its claims?" gets you a yes or a no, a confidence, and a sentence you can point at. That's how Diogo Almeida (TypeSafe cofounder) describes judging his own writing: a list of concrete rules rather than a vibe. Clarity Judge turns each rule into one question for Jev, runs them all at once, and shows you each answer on its own.
+Use the pnpm version pinned in [package.json](package.json), currently `10.34.5`, and keep `pnpm-lock.yaml` as the only dependency lockfile. The manifest declares Node.js `>=20`; use a version supported by the installed Next.js dependency as well. Node.js 22+ is a practical development baseline.
 
-## What Jev is (in one paragraph)
-
-Jev doesn't write text. You give it some text (TypeSafe calls this the "state") plus a list of typed questions, and it answers every question in a single fast call with structured values. Clarity Judge uses two question types:
-
-- **Yes / No** questions — Jev returns the probability (0 to 1) that the answer is "yes".
-- **Pick one** questions — Jev returns the chosen option, a probability for every option, and a confidence value.
-
-All the questions in one run go out in one request, so seven checks cost one round trip.
-
-## Setup
-
-**Prerequisites:** Node.js 20 or newer and [pnpm](https://pnpm.io) 10 (`corepack enable` gives you the pinned version automatically). The project refuses `pnpm install` and `yarn` so everyone shares one lockfile.
-
-```bash
-git clone <this-repo-url> clarity-judge
+```sh
+git clone https://github.com/BunsDev/clarity-judge.git
 cd clarity-judge
-pnpm install
+# Activate the pnpm version declared in package.json.
+# Where Corepack is installed, `corepack enable` enables its shims.
+pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open http://localhost:3000. That's demo mode — you'll see a yellow banner and simulated results. Everything is clickable.
+Open the address printed by Next.js, normally `http://localhost:3000`. Without a key, the app uses deterministic local mock results, clearly labeled as demo mode. They demonstrate the interface, not Jev's measured performance. The install guard permits **pnpm**, not npm or Yarn; do not create a second lockfile.
 
-### Connecting a real API key
+### Connect Jev
 
-1. Get a key at [typesafe.ai](https://typesafe.ai) (Jev is in early access; join the waitlist there).
-2. Copy the example env file and paste your key in:
+Obtain a key from the [TypeSafe console](https://console.typesafe.ai), then configure it on your own development server:
 
-   ```bash
-   cp .env.local.example .env.local
-   # then edit .env.local so it reads:
-   # TYPESAFE_API_KEY=your_key_here
-   ```
-
-3. Restart the dev server (`Ctrl+C`, then `pnpm dev` again). The banner disappears and the badge in the header switches to **Live · server key**.
-
-Prefer not to touch files? Paste the key into the **API key** panel in the app instead — see [API keys and keeping them secret](#api-keys-and-keeping-them-secret).
-
-The key is read on the server only. The browser talks to this app's own `/api/judge` route, never to TypeSafe directly.
-
-## Try it: the built-in sample
-
-The editor is pre-loaded with a deliberately hedgy paragraph:
-
-> I think we should probably consider moving the launch to next quarter — at least, that's sort of my current read on things. The data — which, to be fair, is still a little incomplete — seems to suggest that onboarding conversion might be somewhat lower than we'd perhaps hoped. …
-
-Press **Run Judgment**. In demo mode the sample text gives this (results are simulated but deterministic, so you'll see exactly these numbers):
-
-| Check | Verdict | Confidence |
-|---|---|---|
-| Hedging language | Yes — Hedges too much | 100% |
-| Em dash usage | Yes — Overuses em dashes | 100% |
-| Clarity up front | Yes — Main point is clear early | 93% |
-| Filler phrases | Yes — Contains filler | 100% |
-| Tone consistency | Casual | 62% ⚑ flagged |
-| Passive voice overuse | Yes — Leans on passive voice | 75% |
-| Actionability | Clear next steps | 86% |
-
-with the summary *"3 of 7 checks passed. Review hedging language, em dash usage, filler phrases, and passive voice overuse. 1 check is low-confidence and worth a second look."*
-
-With a real key the verdicts are Jev's own and will differ — you'd expect it to be harsher on clarity and actionability for this paragraph than the demo is.
-
-Press **⌘K** (Ctrl+K) for the command palette: run, load the sample, toggle any check, switch theme, change the key. The header readout shows the model, latency, and token usage of the last run, straight from Jev's response. On phones the Run button lives in a bar at the bottom of the screen.
-
-The app is dark by default, following TypeSafe's ink-and-paper palette. **Light** in the top bar switches themes and remembers your choice. On wide screens the three steps sit side by side: text, checks, results. Press **⌘/Ctrl + Enter** inside the editor to run.
-
-The interface reveals detail progressively. Checks show just their name until you open one to see what it looks for and the exact question Jev is asked. Results open automatically only where there's something to look at: issues and low-confidence checks start expanded, passes start collapsed to a one-line verdict, and **Expand all** flips everything. The reasoning behind the app sits under **Why?** in the strip below the header.
-
-Each card shows:
-
-- the **verdict** in plain words, with a ✓ / ⚠ / ? icon (the icon shape changes as well as the colour, so it works without colour vision)
-- **Confidence** as a percentage and a bar
-- an **evidence sentence** — the part of your text most relevant to that check
-- a **flag** ("Uncertain — double-check") when confidence is under the threshold. The default is 70%; drag the slider in the results header to change it. Flags update instantly without re-running.
-
-## Adding your own checks
-
-Click **+ Add a custom check** under the built-in list. You choose:
-
-- a name (e.g. "Is this on-brand?")
-- the answer type: Yes / No, or a list of options you type in
-- the question to send to Jev
-- which answer counts as a problem (so the summary's "issues found" number makes sense)
-- optionally, a description of what "good" looks like — this is sent to Jev as extra context
-
-Custom checks are saved in your browser (localStorage) so they're there next time. Nothing is sent anywhere except to Jev when you run a judgment.
-
-## How the code is organised
-
-```
-app/
-  page.tsx               Server component: reads the API key → passes demoMode to the client app
-  layout.tsx             Page shell, fonts, metadata
-  api/judge/route.ts     POST endpoint the browser calls; forwards to Jev (or the mock)
-components/
-  ClarityJudgeApp.tsx    All the state lives here; other components are presentational
-  TextEditor.tsx         Textarea + word count + "Load sample"
-  AxisSelector.tsx       Built-in + custom checks with toggles
-  AxisCard.tsx           One toggle row
-  CustomAxisBuilder.tsx  The "add a custom check" form
-  ResultsPanel.tsx       Summary + result cards + loading / error / empty states
-  AxisResultCard.tsx     Verdict, confidence bar, evidence, flag
-  SummaryBanner.tsx      Totals and the one-line takeaway
-  ApiKeyBanner.tsx       Full-width key banner under the header (masked input, never displays the key)
-  ApiKeySetupGuide.tsx   Environment-aware server-side setup steps
-  Window.tsx             Bordered panel with an inverted mono title bar
-  ThemeToggle.tsx        Dark / light switch, persisted in localStorage
-  CommandPalette.tsx     ⌘K palette: every action, keyboard-first
-  StatusReadout.tsx      Header readout: model, latency, tokens of the last run
-  icons.tsx              Tiny inline SVG icons
-lib/
-  builtInAxes.ts         The 7 default checks, defined as data — add a new one here
-  jevClient.ts           The real TypeSafe API call (server-side only)
-  mockJevClient.ts       Demo-mode stand-in: plausible, seeded, no network
-  judge.ts               Glue: axes → questions → answers → results
-  evidenceHeuristic.ts   Picks the most relevant sentence when Jev can't tell us
-  results.ts             Summary maths, flagging, confidence bands
-  storage.ts             localStorage helpers (custom axes, settings, browser key)
-  redact.ts              Masks key-shaped strings in error output
-  errors.ts              Turns an error code into a title, explanation, and next actions
-scripts/
-  check-secrets.mjs      Secret scanner (pre-commit + CI)
-  pre-commit             Git hook: scans staged changes (installed by `pnpm install`)
-  pre-push               Git hook: scans the whole tree before pushing
-  sampleText.ts          The pre-loaded paragraph
-types/
-  axis.ts, jev.ts, results.ts
+```sh
+cp .env.local.example .env.local
+# Edit .env.local and set TYPESAFE_API_KEY, then restart `pnpm dev`.
 ```
 
-### How a judgment run works
+Alternatively, use the app's API key panel. A browser key overrides the server environment key; without either, the app stays in demo mode. Live requests go through this app's `/api/judge` endpoint to TypeSafe, not directly from the browser to the provider.
 
-1. `ClarityJudgeApp` collects the text and the switched-on checks and calls `runJudgment()` in `lib/judge.ts`.
-2. Each check becomes one Jev question (`axisToQuestion`). Yes/No checks become `noul` questions; option checks become `choice` questions.
-3. **Demo mode:** `mockJevClient.ts` answers locally. The mock leans toward "yes" when the text contains that check's keywords, so the sample paragraph gives sensible-looking results.
-   **Live mode:** the browser POSTs to `/api/judge`, which calls `callJev()` in `lib/jevClient.ts`. That builds TypeSafe's wire format:
+## Try a judgment
 
-   ```json
-   {
-     "state": "<your text>",
-     "model": "jev-latest",
-     "questions": {
-       "hedging": { "type": "noul", "instructions": "Does this text unnecessarily hedge…?", "criteria": { "true": "…", "false": "…" } },
-       "tone":    { "type": "choice", "instructions": "What is the overall tone…?", "criteria": { "formal": "…", "casual": "…", "mixed": "…" } }
-     }
-   }
-   ```
+The editor starts with a deliberately hedgy sample. Choose the checks to run, then press **Run Judgment**, or use `⌘/Ctrl + Enter` in the editor. Each enabled check becomes a separate typed question, submitted in one primary batch.
 
-4. Answers are normalised into one shape (`JevAnswer`). A missing or malformed answer is marked `needsReview` instead of crashing the run.
-5. Evidence: Jev returns verdicts, not text spans. In live mode the app makes one extra batched request asking Jev *which sentence* most influenced each answer (a `choice` question whose options are the numbered sentences). If that's unavailable, or in demo mode, a local keyword heuristic picks a likely sentence and labels it **approximate**.
-6. `buildSummary()` counts passes, issues, and low-confidence flags, and writes the takeaway line.
+| Check | What it asks about |
+| --- | --- |
+| Hedging language | Unnecessary qualification of claims. |
+| Em dash usage | Excessive reliance on em dashes. |
+| Clarity up front | Whether the main point appears early. |
+| Filler phrases | Words and phrases that add little substance. |
+| Tone consistency | The passage's tone category. |
+| Passive voice overuse | Whether passive constructions obscure the message. |
+| Actionability | Whether the reader has clear next steps. |
 
-### A note on confidence
+These are editable writing preferences, not universal rules: a hedge may accurately express uncertainty, and passive voice can be appropriate. Check the actual text before acting on a verdict.
 
-For "pick one" questions Jev returns a confidence value directly. For Yes/No questions it returns only the probability of "yes", so the app derives confidence as **how far that probability is from a coin flip**: `max(p, 1 - p)`. A probability of 0.92 is 92% confident; 0.5 is 50% (genuinely unsure, always flagged at the default threshold).
+Results show a plain-language verdict, confidence, a relevant sentence, and an uncertainty flag. The default flagging threshold is 70%; moving it re-evaluates flags locally without a new model call. Problematic and uncertain cards expand first; **Expand all** exposes the rest. The summary counts outcomes from the individual checks rather than providing an independent model-generated grade.
 
-## API keys and keeping them secret
+Use `⌘K` / `Ctrl+K` for the command palette, change light/dark themes in the header, and open check details to inspect the question being sent. Narrow screens stack the workflow and provide a bottom Run control.
 
-There are two ways to give the app a key. Either way, the key is only ever sent to this app's own `/api/judge` route, which forwards it to TypeSafe.
+## Add a custom check
 
-1. **`.env.local` (recommended on your own machine).** Copy `.env.local.example`, paste the key, restart the dev server. The file is gitignored. The server reads it; the browser only learns a true/false "a key exists".
-2. **In the browser.** Use the **API key banner** at the top of the page and paste the key into the password field. It's dots while you type, it's never displayed again after saving, and there's no "show" button — so it's safe to have the app open on a shared screen. It persists in that browser's localStorage and is sent as a request header. A browser key overrides the server key. Anyone using the same browser profile could read localStorage, so on a shared computer prefer option 1. **Remove key from this browser** wipes it.
+Choose **Add a custom check**, then provide a name, question, and answer type: Yes/No or a fixed list of options. Declare which answers count as a problem; optionally describe what a good result looks like. Custom checks are stored in that browser's localStorage.
 
-### Guard rails against leaking a key
+Keep questions narrow enough to judge from the supplied text. For built-in additions, edit `lib/builtInAxes.ts`; request construction, results, and summaries derive from those definitions. Keep ids stable and test both the answer mapping and the issue polarity.
 
-- **Pre-commit hook.** `pnpm install` installs `scripts/pre-commit` into `.git/hooks`. It runs `scripts/check-secrets.mjs --staged`, which blocks the commit if any *added* line looks like a credential (TypeSafe `apikey_…`, OpenAI/GitHub/AWS/Slack tokens, private-key blocks, or `TYPESAFE_API_KEY=` with a real value), if any `.env*` file other than `.env.local.example` is staged, if a file that should never be uploaded is staged (`.vercel/`, build output, `node_modules`, `*.pem`/`*.key`/`*.p12`, `.npmrc`, SSH keys, `.DS_Store`, database dumps), or if a staged file is over 5 MB. Findings are printed masked, never in full.
-- **Pre-push hook.** `scripts/pre-push` runs the same scanner over every tracked file before a push, so a commit that slipped past with `--no-verify` still can't leave the machine.
-- **CI.** `.github/workflows/ci.yml` runs the same scanner over every tracked file, then lint, typecheck, tests, and build, on every push and pull request.
-- **Manual scan.** `pnpm check:secrets` at any time.
-- **Redaction.** Error messages shown in the UI pass through `lib/redact.ts`, which masks anything key-shaped, so even a misbehaving upstream error can't put the key on screen. Nothing on the server logs the key.
-- **`.gitignore`** already covers `.env*`, with an explicit exception for `.env.local.example`.
+## What the model returns
 
-If a key does slip out somewhere (a screenshot, a pasted chat), rotate it at typesafe.ai and update `.env.local`.
+Jev answers structured questions rather than writing a critique. This app uses `noul` for Yes/No and `choice` for named options. The server adapter uses TypeSafe's `state`, `model`, and `questions` wire format with `jev-latest`; see `lib/jevClient.ts` and the API reference above.
 
-## Errors you might see
+For a Yes/No question, the provider returns the probability of “yes.” The app displays `max(p, 1 - p)` as the probability of the selected binary answer: 0.92 becomes 92%, while 0.5 becomes 50%. For choice questions, it uses the returned confidence value. These signals are not a guarantee of correctness, calibrated accuracy, or factual verification.
 
-| Message | What it means |
-|---|---|
-| *You've hit the API rate limit, try again in a moment.* | TypeSafe returned HTTP 429. Wait a few seconds and press **Retry**. |
-| *TypeSafe rejected the API key.* | HTTP 401. Check the key you saved in the browser, or the server's `TYPESAFE_API_KEY` (`.env.local` locally; an environment variable on Vercel or your host). |
-| *Your TypeSafe organization has no API credits.* | HTTP 402. The key is valid but the account has no balance. Add credits at console.typesafe.ai/settings/billing. |
-| *TypeSafe is overloaded right now.* | HTTP 529/503. Retry shortly. |
-| *Needs review* on a single card | Jev's answer for that check was missing or malformed. The rest of the run is fine. |
+Missing or malformed answers remain **Needs review**. They must not silently become passing checks.
 
-Every error is shown as a window with a plain-language title, an explanation of what happened and why, and the actions that fix it (Retry, Add credits, Change key). The exact upstream response is one click away under "Raw response", so nothing fails silently.
+### Evidence and request counts
 
-## Scripts
+The primary request batches the enabled writing checks. When live evidence selection is enabled and the passage has 2–100 sentences, the app can make **one additional batched request** asking Jev to select sentence ids. Otherwise, or if that extra request fails, a local heuristic picks a likely sentence and labels it **approximate**.
 
-```bash
-pnpm dev            # start the dev server
-pnpm build          # production build
-pnpm start          # serve the production build
-pnpm test           # unit tests (vitest) for the lib/ helpers and the API route
-pnpm lint           # eslint
-pnpm typecheck      # tsc --noEmit
-pnpm check:secrets  # scan tracked files for anything that looks like a credential
+Evidence always comes from the supplied text, not a generated quotation. A model-selected sentence is a relevance judgment, not proof of the model's causal reasoning or of the verdict's truth. Evidence lookup failure does not replace a failed primary judgment with a success.
+
+At this revision, the token readout in `lib/judge.ts` uses the primary classification response; it does **not** aggregate usage from the optional evidence request. Demo token values are estimates. Do not treat the header as a complete billing ledger.
+
+## API keys and privacy
+
+A server `TYPESAFE_API_KEY` stays on the server; the client receives only configuration status. Do not put credentials in `NEXT_PUBLIC_` variables, checked-in files, screenshots, URLs, or model input.
+
+A key entered in the browser is stored in localStorage and sent as the `x-typesafe-api-key` header to this deployment's `/api/judge` endpoint. The masked field reduces accidental screen exposure, but localStorage is not encrypted by the app and remains accessible to scripts on the origin and anyone with access to the browser profile. Users must trust the deployment handling their key. Remove browser keys on shared machines.
+
+Live judgment sends the submitted writing and checks to TypeSafe. Use synthetic text for demonstrations and consider confidentiality before submitting unpublished or sensitive material. A public deployment configured with a server key lets visitor requests spend that key's credits: add appropriate access controls, request limits, and provider-side budgets, or leave the server key unset for a no-key demo.
+
+### Repository safeguards
+
+The install-time `prepare` script installs the repository's Git hooks. The secret scanner supports staged-change checks and tracked-file scans; the repository also contains a CI workflow. Run `pnpm check:secrets` before sharing changes. Redaction helpers mask key-shaped strings in errors, and `.env.local` is gitignored.
+
+These are safeguards, not a guarantee that every credential or private sentence will be detected. Review diffs and exports manually. If a key is exposed, revoke or rotate it at the provider rather than only deleting the visible copy.
+
+## Errors
+
+| Result | What to check |
+| --- | --- |
+| 401 / rejected key | The browser override and server key configuration. |
+| 402 / no credits | The account's billing or credit state. |
+| 429 / rate limit | Provider retry guidance; avoid rapid repeated requests. |
+| 529 or 503 / overloaded | Retry later rather than fabricating a result. |
+| Needs review on a card | Missing or malformed data for that check. |
+
+The UI provides actionable error messages and an expandable upstream response. Treat diagnostic text as potentially sensitive even after redaction.
+
+## Project map
+
+| Path | Responsibility |
+| --- | --- |
+| `components/ClarityJudgeApp.tsx` | Client state and the judgment workflow. |
+| `components/AxisSelector.tsx`, `components/CustomAxisBuilder.tsx` | Built-in and custom check selection. |
+| `components/ResultsPanel.tsx`, `components/AxisResultCard.tsx` | Result, evidence, and uncertainty presentation. |
+| `lib/builtInAxes.ts` | Named built-in checks. |
+| `lib/judge.ts` | Browser orchestration, answer mapping, and optional evidence selection. |
+| `lib/jevClient.ts`, `app/api/judge/route.ts` | Provider adapter and server endpoint. |
+| `lib/mockJevClient.ts`, `lib/evidenceHeuristic.ts` | Local simulation and approximate evidence. |
+| `lib/results.ts`, `lib/storage.ts`, `lib/redact.ts`, `lib/errors.ts` | Summaries, storage, redaction, and error presentation. |
+| `types/` | Check, provider, and result contracts. |
+| `scripts/` | Secret scanner and Git-hook installation. |
+
+## Development checks
+
+```sh
+pnpm check:secrets
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
 ```
 
-## Extending it
+`pnpm start` serves a production build. Automated tests should use mocks rather than consume real API credits. For interface changes, also check both modes, custom-check persistence, result thresholds, key removal, error states, keyboard controls, themes, and narrow screens.
 
-- **New built-in check:** add an object to `lib/builtInAxes.ts`. That's it — the UI, request building, and summary all read from that list.
-- **Use the official SDK instead of `fetch`:** TypeSafe ships `@typesafe-ai/sdk`. `lib/jevClient.ts` is the only file that would change.
-- **Deploy:** it's a standard Next.js app. On Vercel (or anywhere else), set the `TYPESAFE_API_KEY` environment variable and deploy. The in-app setup guide detects where it's running (local, Vercel, other host) and shows matching instructions. Think twice before setting a server key on a public URL: every visitor's run spends its credits. For a public demo, leave it unset and let visitors paste their own key in the browser.
+## Related community projects
+
+[TypeSafe AI Playground](https://github.com/BunsDev/typesafe-ai-playground) explores Jev experiments; [Jev Tool & Model Router](https://github.com/BunsDev/typesafe-router) separates route selection from execution; [TypeSafe UI](https://github.com/BunsDev/typesafe-ui) provides reusable interface components. These are separate repositories, not an automatically integrated product suite.
+
+The proposed GitHub About description and discovery topics are recorded in [repository-metadata.json](repository-metadata.json). That file does not update GitHub settings automatically.
