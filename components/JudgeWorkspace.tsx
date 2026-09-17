@@ -23,7 +23,7 @@ import { Heading } from "./ui";
  * presentational. Keys and telemetry live in the shell so the topbar can show them.
  */
 export function JudgeWorkspace() {
-  const { apiKey, demoMode, hydrated, setTelemetry, setRunning, openKeyDialog } = useShell();
+  const { apiKey, demoMode, hydrated, setTelemetry, setRunning, openKeyDialog, paletteOpen, setPaletteOpen, modKey } = useShell();
 
   const [text, setText] = useState(SAMPLE_TEXT);
   const [customAxes, setCustomAxes] = useState<Axis[]>([]);
@@ -37,7 +37,6 @@ export function JudgeWorkspace() {
   const [snapshot, setSnapshot] = useState("");
   // Whether the results on screen came from the mock, decided when they arrived.
   const [resultsSimulated, setResultsSimulated] = useState(false);
-  const [paletteOpen, setPaletteOpen] = useState(false);
   const autoRan = useRef(false);
 
   // localStorage only exists in the browser and the first client render must
@@ -118,7 +117,7 @@ export function JudgeWorkspace() {
       if (!(event.metaKey || event.ctrlKey)) return;
       if (event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setPaletteOpen((open) => !open);
+        setPaletteOpen(!paletteOpen);
       } else if (event.key === "Enter") {
         event.preventDefault();
         void run();
@@ -126,7 +125,7 @@ export function JudgeWorkspace() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [run]);
+  }, [run, paletteOpen, setPaletteOpen]);
 
   function toggleAxis(id: string) {
     setSelectedIds((prev) => {
@@ -157,7 +156,7 @@ export function JudgeWorkspace() {
   const running = status === "running";
 
   const commands: Command[] = [
-    { id: "run", group: "Judge", label: "Run judgment", hint: "⌘↵", run: () => void run() },
+    { id: "run", group: "Judge", label: "Run judgment", hint: `${modKey} ↵`, run: () => void run() },
     { id: "sample", group: "Text", label: "Load sample text", run: () => setText(SAMPLE_TEXT) },
     { id: "clear-text", group: "Text", label: "Clear text", run: () => setText("") },
     { id: "all", group: "Checks", label: "Select all checks", run: () => selectAll(true) },
@@ -211,6 +210,7 @@ export function JudgeWorkspace() {
           demoMode={demoMode}
           running={running}
           onRun={() => void run()}
+          runHint={`${modKey} ↵`}
         />
         <ResultsPanel
           status={status}

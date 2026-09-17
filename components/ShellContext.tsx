@@ -21,6 +21,11 @@ export type ShellState = {
   setTelemetry: (telemetry: Telemetry | null) => void;
   running: boolean;
   setRunning: (running: boolean) => void;
+  /** ⌘K palette, opened from the topbar button or the keyboard. */
+  paletteOpen: boolean;
+  setPaletteOpen: (open: boolean) => void;
+  /** "⌘" on Apple platforms, "Ctrl" elsewhere, for shortcut hints. */
+  modKey: string;
 };
 
 export const ShellContext = createContext<ShellState | null>(null);

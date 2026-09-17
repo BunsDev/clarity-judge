@@ -84,6 +84,7 @@ export function ApiKeyDialog({ open, onClose }: Props) {
           <input
             id="personal-api-key"
             type="password"
+            autoFocus
             autoComplete="off"
             autoCapitalize="none"
             spellCheck={false}

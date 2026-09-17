@@ -51,6 +51,14 @@ export function ResultsPanel({ status, results, summary, error, stale, threshold
   }
 
   const running = status === "running";
+  // One polite announcement per state change, instead of narrating the whole panel.
+  const announcement = running
+    ? "Judging. Asking Jev."
+    : status === "error" && explained
+      ? `Run failed. ${explained.title}.`
+      : status === "done" && summary
+        ? `Judgment complete. ${summary.takeaway}`
+        : "";
 
   return (
     <section className="panel" aria-labelledby="results-title">
@@ -66,7 +74,10 @@ export function ResultsPanel({ status, results, summary, error, stale, threshold
         <Export data={exportData} name="clarity-judge.json" />
       </div>
 
-      <div className="panel-content scroll" aria-live="polite">
+      <p className="sr-only" role="status" aria-live="polite">
+        {announcement}
+      </p>
+      <div className="panel-content scroll">
         {status === "error" && error && explained && (
           <div className="error-note" role="alert">
             <strong>
@@ -158,6 +169,7 @@ export function ResultsPanel({ status, results, summary, error, stale, threshold
             max={95}
             step={5}
             value={Math.round(threshold * 100)}
+            aria-valuetext={`${Math.round(threshold * 100)} percent confidence`}
             onChange={(event) => onThresholdChange(Number(event.target.value) / 100)}
           />
           <div className="input-meta">

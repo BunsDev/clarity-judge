@@ -11,7 +11,7 @@
   --panel: #fff;
   --soft: #f1f1f4;
   --ink: #26252c;
-  --muted: #73717e;
+  --muted: #656370;
   --line: #e5e4e9;
   --sidebar: #ededf1;
   --accent: #ad267e;
@@ -185,6 +185,38 @@ label select {
 .muted {
   color: var(--muted);
   font-size: 11px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.chip-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 14px 0 0;
+  min-width: 0;
+}
+.chip-fieldset > legend {
+  padding: 0;
+  margin: 0 0 8px;
+}
+.chip-fieldset > legend.field-label {
+  margin: 0 0 8px;
+}
+.panel-content,
+.sidebar nav,
+.palette-list,
+.criteria-preview,
+main {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
 }
 .skip-link {
   position: absolute;
@@ -753,7 +785,6 @@ main:has(> .compact-lab) {
   border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
   border-radius: 4px;
   font: 9px var(--font-mono);
-  opacity: 0.8;
 }
 @keyframes spin {
   to {
@@ -842,7 +873,7 @@ main:has(> .compact-lab) {
 }
 .field-options .chip .chip-kind {
   font: 9px var(--font-mono);
-  opacity: 0.7;
+  color: inherit;
 }
 .field-options .chip-group {
   display: inline-flex;
@@ -1199,6 +1230,7 @@ main:has(> .compact-lab) {
   font-weight: 400;
 }
 .result-card .flag-icon {
+  display: inline-flex;
   color: var(--accent);
   flex-shrink: 0;
 }
@@ -1877,6 +1909,9 @@ main:has(> .compact-lab) {
   .icon-button {
     min-width: 44px;
   }
+  .field-options .chip-remove {
+    width: 44px;
+  }
   input:not([type="checkbox"]):not([type="range"]),
   select {
     min-height: 44px;
@@ -1892,5 +1927,42 @@ main:has(> .compact-lab) {
     animation: none !important;
     scroll-behavior: auto !important;
     transition: none !important;
+  }
+}
+/* Stronger structure for people who asked the OS for more contrast. */
+@media (prefers-contrast: more) {
+  :root {
+    --line: #b9b8c2;
+    --muted: #4a4854;
+  }
+  :root[data-theme="dark"] {
+    --line: #5c5b66;
+    --muted: #cfced8;
+  }
+}
+/* Windows High Contrast / forced colors: state must survive without our colours. */
+@media (forced-colors: active) {
+  .field-options .chip.selected,
+  .sidebar nav a.active,
+  .palette-list button[aria-selected="true"],
+  .button.primary {
+    outline: 2px solid;
+    outline-offset: -2px;
+  }
+  .probability-track {
+    border: 1px solid;
+  }
+  .probability-track > span {
+    background: Highlight;
+  }
+  .outcome-badge,
+  .count,
+  .pill,
+  .result-card,
+  .panel {
+    border-color: ButtonText;
+  }
+  .demo-banner {
+    border-left-width: 4px;
   }
 }

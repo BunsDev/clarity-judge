@@ -88,17 +88,17 @@ export function CustomAxisBuilder({ onAdd }: Props) {
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Is this on-brand?" maxLength={80} />
       </label>
 
-      <div className="field-label" style={{ marginTop: 14 }}>
-        Answer type
-      </div>
-      <div className="field-options segmented">
-        {(["yes_no", "choice"] as Kind[]).map((value) => (
-          <Segment key={value} active={kind === value}>
-            <input type="radio" name="kind" value={value} checked={kind === value} onChange={() => setKind(value)} />
-            {value === "yes_no" ? "Yes / No" : "Pick one"}
-          </Segment>
-        ))}
-      </div>
+      <fieldset className="chip-fieldset">
+        <legend className="field-label">Answer type</legend>
+        <div className="field-options segmented">
+          {(["yes_no", "choice"] as Kind[]).map((value) => (
+            <Segment key={value} active={kind === value}>
+              <input type="radio" name="kind" value={value} checked={kind === value} onChange={() => setKind(value)} />
+              {value === "yes_no" ? "Yes / No" : "Pick one"}
+            </Segment>
+          ))}
+        </div>
+      </fieldset>
 
       <label style={{ marginTop: 14 }}>
         Question to ask
@@ -113,10 +113,8 @@ export function CustomAxisBuilder({ onAdd }: Props) {
       {kind === "yes_no" && <span className="field-hint">Phrase it so that &ldquo;yes&rdquo; has one clear meaning.</span>}
 
       {kind === "yes_no" ? (
-        <>
-          <div className="field-label" style={{ marginTop: 14 }}>
-            A &ldquo;yes&rdquo; answer means
-          </div>
+        <fieldset className="chip-fieldset">
+          <legend className="field-label">A &ldquo;yes&rdquo; answer means</legend>
           <div className="field-options segmented">
             <Segment active={!yesIsIssue}>
               <input type="radio" name="yesMeans" checked={!yesIsIssue} onChange={() => setYesIsIssue(false)} />
@@ -127,7 +125,7 @@ export function CustomAxisBuilder({ onAdd }: Props) {
               There&apos;s a problem
             </Segment>
           </div>
-        </>
+        </fieldset>
       ) : (
         <>
           <label style={{ marginTop: 14 }}>
@@ -135,10 +133,10 @@ export function CustomAxisBuilder({ onAdd }: Props) {
             <textarea value={optionsText} onChange={(e) => setOptionsText(e.target.value)} rows={3} placeholder={"Engineers\nExecutives\nGeneral public"} />
           </label>
           {parsedOptions.length > 0 && (
-            <>
-              <div className="field-label" style={{ marginTop: 14 }}>
+            <fieldset className="chip-fieldset">
+              <legend className="field-label">
                 Which options count as a problem? <span className="muted">(optional)</span>
-              </div>
+              </legend>
               <div className="field-options">
                 {parsedOptions.map((label) => {
                   const value = slugify(label);
@@ -155,7 +153,7 @@ export function CustomAxisBuilder({ onAdd }: Props) {
                   );
                 })}
               </div>
-            </>
+            </fieldset>
           )}
         </>
       )}

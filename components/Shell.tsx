@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { Activity, ArrowUpRight, KeyRound, LoaderCircle, Menu, Moon, PanelLeftClose, PanelLeftOpen, Sun, X } from "lucide-react";
+import { Activity, ArrowUpRight, Command, KeyRound, LoaderCircle, Menu, Moon, PanelLeftClose, PanelLeftOpen, Sun, X } from "lucide-react";
 import type { DeployTarget } from "@/lib/env";
 import { API_KEY_EVENT, clearApiKey, loadApiKey, saveApiKey } from "@/lib/storage";
 import { GITHUB_URL, externalLinks, navGroups, navPages } from "@/lib/nav";
@@ -35,12 +35,15 @@ export function Shell({ serverHasKey, deployTarget, children }: Props) {
   const [telemetry, setTelemetry] = useState<Telemetry | null>(null);
   const [running, setRunning] = useState(false);
   const [keyDialogOpen, setKeyDialogOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [modKey, setModKey] = useState("⌘");
 
   // Read persisted UI state once on the client. The server render can't know it.
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setApiKey(loadApiKey());
     setHydrated(true);
+    setModKey(/Mac|iPhone|iPad|iPod/.test(navigator.platform) ? "⌘" : "Ctrl");
     try {
       setCollapsed(localStorage.getItem(NAV_KEY) === "true");
     } catch {}
@@ -114,8 +117,24 @@ export function Shell({ serverHasKey, deployTarget, children }: Props) {
   }, [demoMode]);
 
   const shell = useMemo<ShellState>(
-    () => ({ serverHasKey, deployTarget, apiKey, hydrated, demoMode, saveKey, clearKey, openKeyDialog, telemetry, setTelemetry, running, setRunning }),
-    [serverHasKey, deployTarget, apiKey, hydrated, demoMode, saveKey, clearKey, openKeyDialog, telemetry, running],
+    () => ({
+      serverHasKey,
+      deployTarget,
+      apiKey,
+      hydrated,
+      demoMode,
+      saveKey,
+      clearKey,
+      openKeyDialog,
+      telemetry,
+      setTelemetry,
+      running,
+      setRunning,
+      paletteOpen,
+      setPaletteOpen,
+      modKey,
+    }),
+    [serverHasKey, deployTarget, apiKey, hydrated, demoMode, saveKey, clearKey, openKeyDialog, telemetry, running, paletteOpen, modKey],
   );
 
   const current = navPages.find((page) => page.href === path);
@@ -206,6 +225,15 @@ export function Shell({ serverHasKey, deployTarget, children }: Props) {
             </div>
             <div className="header-actions">
               <UsageBadge telemetry={telemetry} running={running} hydrated={hydrated} demoMode={demoMode} apiKey={apiKey} serverHasKey={serverHasKey} />
+              <button
+                type="button"
+                className="icon-button"
+                aria-label="Open the command palette"
+                title={`Command palette (${modKey} K)`}
+                onClick={() => setPaletteOpen(true)}
+              >
+                <Command size={18} strokeWidth={1.5} />
+              </button>
               <a className="icon-button" href={GITHUB_URL} target="_blank" rel="noopener noreferrer" aria-label="View Clarity Judge on GitHub" title="View source on GitHub">
                 <GitHubMark />
               </a>
@@ -282,7 +310,7 @@ function UsageBadge({
       ? "Latency is measured in the browser. Tokens are the verdict request's input tokens; the optional evidence request is not counted."
       : "Demo mode sends nothing to Jev. Token counts are estimates.";
   return (
-    <span className={`usage-badge${!demoMode && hydrated ? " live" : ""}${running ? " busy" : ""}`} title={title} aria-live="polite">
+    <span className={`usage-badge${!demoMode && hydrated ? " live" : ""}${running ? " busy" : ""}`} title={title}>
       {running ? <LoaderCircle size={14} className="spin" /> : <Activity size={14} strokeWidth={1.5} />}
       <span>{mode}</span>
       <small>{detail}</small>

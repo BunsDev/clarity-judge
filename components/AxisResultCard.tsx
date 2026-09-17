@@ -50,7 +50,12 @@ export function AxisResultCard({ result, threshold, index = 0, expanded, onToggl
             {result.verdictDetail ? ` · ${result.verdictDetail}` : ""}
           </p>
         </span>
-        {flagged && !result.needsReview && <Flag size={13} className="flag-icon" aria-label="Low confidence" />}
+        {flagged && !result.needsReview && (
+          <span className="flag-icon">
+            <Flag size={13} aria-hidden />
+            <span className="sr-only">Low confidence</span>
+          </span>
+        )}
         <span className={`result-score${result.needsReview ? " na" : flagged ? " low" : ""}`}>{result.needsReview ? "—" : formatPercent(result.confidence)}</span>
         <ChevronDown size={15} className="marker" aria-hidden />
       </summary>
@@ -62,7 +67,15 @@ export function AxisResultCard({ result, threshold, index = 0, expanded, onToggl
               <span>{yesProbability !== undefined ? "Probability of “yes”" : "Confidence in the pick"}</span>
               <span>{yesProbability !== undefined ? formatPercent(yesProbability) : formatPercent(result.confidence)}</span>
             </div>
-            <div className="probability-track" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((yesProbability ?? result.confidence) * 100)}>
+            <div
+              className="probability-track"
+              role="meter"
+              aria-label={`${yesProbability !== undefined ? "Probability of yes" : "Confidence"} for ${result.axis.name}`}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round((yesProbability ?? result.confidence) * 100)}
+              aria-valuetext={`${formatPercent(yesProbability ?? result.confidence)}${flagged ? ", under the threshold" : ""}`}
+            >
               {yesProbability !== undefined && (
                 <span className="zone" style={{ left: `${Math.round((1 - threshold) * 100)}%`, width: `${Math.max(0, Math.round((2 * threshold - 1) * 100))}%` }} aria-hidden />
               )}

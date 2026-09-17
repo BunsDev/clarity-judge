@@ -52,6 +52,17 @@ Results show a plain-language verdict, confidence, a relevant sentence, and an u
 
 The interface follows the TypeSafe playground at [jev.works](https://jev.works): a sidebar with the judge and two reference pages (**Checks**, which lists every built-in question, and **How it works**), a topbar with the last run's latency and token readout, the API key dialog, and the theme switch. Use `⌘K` / `Ctrl+K` for the command palette and `⌘↵` / `Ctrl+Enter` to run. Narrow screens stack the two panels and move the sidebar behind a menu button.
 
+## Accessibility
+
+The interface is built to be used without a mouse, without colour vision, and with a screen reader.
+
+- **Keyboard.** A skip link is the first tab stop. `⌘K` / `Ctrl+K` or the topbar button opens the command palette, a combobox with arrow, Home, End, Enter, and Escape support. `⌘↵` / `Ctrl+Enter` runs. Checks are real checkboxes styled as chips; result cards are native disclosures. Every dialog traps focus and returns it to the control that opened it.
+- **Screen readers.** Landmarks for navigation, main, and footer; one polite status announcement when a run starts, finishes, or fails; probability tracks are named meters with a spoken value; icon-only controls carry labels; errors use `role="alert"`.
+- **Vision.** Verdicts use an icon and a word as well as a colour. Text meets the 4.5:1 contrast floor in both themes, including small labels and chips. `prefers-contrast: more` strengthens lines and muted text, and Windows forced-colors mode keeps selected, active, and primary states visible.
+- **Motion and touch.** `prefers-reduced-motion` removes every animation and transition, including the count-up numbers. On touch screens every control is at least 44px tall.
+
+Automated checks run against every page and state with axe-core (WCAG 2.2 AA rules plus best practices) report no violations. That is a floor, not a guarantee; if something is hard to use, open an issue.
+
 ## Add a custom check
 
 Choose **Add a custom check**, then provide a name, question, and answer type: Yes/No or a fixed list of options. Declare which answers count as a problem; optionally describe what a good result looks like. Custom checks are stored in that browser's localStorage.

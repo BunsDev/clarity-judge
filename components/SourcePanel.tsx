@@ -21,6 +21,8 @@ type Props = {
   demoMode: boolean;
   running: boolean;
   onRun: () => void;
+  /** Keyboard shortcut shown on the run button, e.g. "⌘ ↵". */
+  runHint: string;
 };
 
 /** Left panel: the text, the checks to run, and the run button. */
@@ -38,6 +40,7 @@ export function SourcePanel({
   demoMode,
   running,
   onRun,
+  runHint,
 }: Props) {
   const words = text.trim() ? text.trim().split(/\s+/).length : 0;
   const sentences = splitSentences(text).length;
@@ -125,7 +128,7 @@ export function SourcePanel({
         <span className="muted">
           {selected} {selected === 1 ? "check" : "checks"} · 1 verdict request{demoMode ? " · simulated" : " · plus an optional evidence request"}
         </span>
-        <RunButton busy={running} disabled={!text.trim() || selected === 0} onClick={onRun} hint="⌘↵">
+        <RunButton busy={running} disabled={!text.trim() || selected === 0} onClick={onRun} hint={runHint}>
           Run judgment
         </RunButton>
       </div>

@@ -42,8 +42,10 @@ export function CommandPalette({ open, onClose, commands }: Props) {
     if (!open && el.open) el.close();
   }, [open]);
 
+  // Keep the active row in view; at the top, show the first group label too.
   useEffect(() => {
-    listRef.current?.querySelector<HTMLElement>(`[data-index="${active}"]`)?.scrollIntoView({ block: "nearest" });
+    if (active === 0) listRef.current?.scrollTo({ top: 0 });
+    else listRef.current?.querySelector<HTMLElement>(`[data-index="${active}"]`)?.scrollIntoView({ block: "nearest" });
   }, [active, filtered]);
 
   const clampedActive = Math.min(active, Math.max(0, filtered.length - 1));
@@ -84,6 +86,12 @@ export function CommandPalette({ open, onClose, commands }: Props) {
             } else if (event.key === "ArrowUp") {
               event.preventDefault();
               setActive((i) => Math.max(i - 1, 0));
+            } else if (event.key === "Home") {
+              event.preventDefault();
+              setActive(0);
+            } else if (event.key === "End") {
+              event.preventDefault();
+              setActive(Math.max(0, filtered.length - 1));
             } else if (event.key === "Enter") {
               event.preventDefault();
               runAt(clampedActive);
@@ -91,10 +99,17 @@ export function CommandPalette({ open, onClose, commands }: Props) {
           }}
           placeholder="Type a command…"
           aria-label="Search commands"
+          role="combobox"
+          aria-expanded="true"
+          aria-autocomplete="list"
+          aria-controls="palette-options"
+          aria-activedescendant={filtered.length ? `palette-option-${clampedActive}` : undefined}
+          autoComplete="off"
+          spellCheck={false}
         />
         <span className="kbd">esc</span>
       </div>
-      <ul ref={listRef} className="palette-list" role="listbox">
+      <ul ref={listRef} id="palette-options" className="palette-list" role="listbox" aria-label="Commands">
         {filtered.length === 0 && <li className="palette-empty">No matches</li>}
         {filtered.map((command, index) => {
           const isActive = index === clampedActive;
@@ -102,7 +117,7 @@ export function CommandPalette({ open, onClose, commands }: Props) {
           return (
             <li key={command.id} role="presentation">
               {showGroup && <div className="palette-group">{command.group}</div>}
-              <button type="button" role="option" aria-selected={isActive} data-index={index} onMouseEnter={() => setActive(index)} onClick={() => runAt(index)}>
+              <button type="button" id={`palette-option-${index}`} role="option" aria-selected={isActive} data-index={index} tabIndex={-1} onMouseEnter={() => setActive(index)} onClick={() => runAt(index)}>
                 <span>{command.label}</span>
                 {command.hint && <span className="palette-hint">{command.hint}</span>}
               </button>
