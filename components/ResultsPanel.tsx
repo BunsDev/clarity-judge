@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import { isFlagged } from "@/lib/results";
+
 import type { AxisResult, JudgmentStatus, Summary } from "@/types/results";
 import type { JevErrorPayload } from "@/types/jev";
 import { AxisResultCard } from "./AxisResultCard";
@@ -24,6 +27,25 @@ type Props = {
 
 export function ResultsPanel({ status, results, summary, error, threshold, onThresholdChange, onRetry, onChangeKey, demoMode, runId }: Props) {
   const explained = error ? explainError(error) : null;
+
+  // Progressive disclosure: by default, issues and flagged checks are open and
+  // passes are closed. Any manual toggle or "expand/collapse all" overrides that
+  // until the next run (the override is keyed by runId).
+  const [override, setOverride] = useState<{ runId: number; ids: Set<string> } | null>(null);
+  const defaultOpen = (r: AxisResult) => r.isIssue || r.needsReview || isFlagged(r, threshold);
+  const isOpen = (r: AxisResult) => (override && override.runId === runId ? override.ids.has(r.axis.id) : defaultOpen(r));
+  const currentOpenIds = () => new Set(results.filter(isOpen).map((r) => r.axis.id));
+  const allOpen = results.length > 0 && results.every(isOpen);
+
+  function toggleOne(id: string) {
+    const ids = currentOpenIds();
+    if (ids.has(id)) ids.delete(id);
+    else ids.add(id);
+    setOverride({ runId, ids });
+  }
+  function setAll(open: boolean) {
+    setOverride({ runId, ids: open ? new Set(results.map((r) => r.axis.id)) : new Set() });
+  }
   return (
     <div>
       {/* Toolbar: the threshold is a results-view setting, so it lives here rather than in the title bar. */}
@@ -42,7 +64,13 @@ export function ResultsPanel({ status, results, summary, error, threshold, onThr
           />
           <span className="w-8 text-xs tabular-nums text-ink">{Math.round(threshold * 100)}%</span>
         </label>
-        <span className="hidden sm:inline">Hatched zone = uncertain</span>
+        {results.length > 0 ? (
+          <button type="button" onClick={() => setAll(!allOpen)} className="press text-ink-2 hover:text-ink">
+            {allOpen ? "Collapse all" : "Expand all"}
+          </button>
+        ) : (
+          <span className="hidden sm:inline">Hatched zone = uncertain</span>
+        )}
       </div>
 
       <div className="space-y-3 p-3">
@@ -118,7 +146,14 @@ export function ResultsPanel({ status, results, summary, error, threshold, onThr
           <div className={`space-y-3 transition-opacity duration-150 ${status === "running" ? "opacity-50" : ""}`}>
             <SummaryBanner summary={summary} demoMode={demoMode} />
             {results.map((result, i) => (
-              <AxisResultCard key={`${runId}-${result.axis.id}`} result={result} threshold={threshold} index={i + 1} />
+              <AxisResultCard
+                key={`${runId}-${result.axis.id}`}
+                result={result}
+                threshold={threshold}
+                index={i + 1}
+                expanded={isOpen(result)}
+                onToggle={() => toggleOne(result.axis.id)}
+              />
             ))}
           </div>
         )}

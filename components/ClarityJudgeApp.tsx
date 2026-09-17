@@ -263,14 +263,29 @@ export function ClarityJudgeApp({ serverHasKey, deployTarget }: Props) {
         disabled={running}
       />
 
-      {/* Thesis strip */}
-      <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-line px-4 py-3 sm:px-6">
-        <span className="chip !bg-pink !text-[#1e1e1e]">Decisions, not scores</span>
-        <p className="max-w-3xl text-sm text-ink-2">
-          One vague &ldquo;is this good?&rdquo; is easy to game. Separate, named checks each get their own verdict and
-          confidence, so you see exactly what to fix.
-        </p>
-      </div>
+      {/* Thesis strip: one line, with the reasoning one click away. */}
+      <details className="group border-b border-line px-4 sm:px-6">
+        <summary className="flex cursor-pointer select-none list-none flex-wrap items-baseline gap-x-4 gap-y-1 py-2.5">
+          <span className="chip !bg-pink !text-[#1e1e1e]">Decisions, not scores</span>
+          <span className="text-sm text-ink-2">Separate, named checks. Each gets its own verdict and confidence.</span>
+          <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.14em] text-muted group-open:hidden">Why? ▾</span>
+          <span className="ml-auto hidden font-mono text-[10px] uppercase tracking-[0.14em] text-muted group-open:inline">Close ▴</span>
+        </summary>
+        <div className="grid gap-4 pb-4 text-sm text-ink-2 sm:grid-cols-3">
+          <p>
+            <span className="block font-mono text-[10px] uppercase tracking-[0.14em] text-muted">The problem</span>
+            One vague &ldquo;is this good?&rdquo; gives a number nobody can argue with, and models are easy to flatter into a 7.
+          </p>
+          <p>
+            <span className="block font-mono text-[10px] uppercase tracking-[0.14em] text-muted">The approach</span>
+            Each check is one specific question. Jev answers all of them in a single call with a probability per answer.
+          </p>
+          <p>
+            <span className="block font-mono text-[10px] uppercase tracking-[0.14em] text-muted">What you get</span>
+            A verdict, a confidence, and the sentence that drove it, per check, so you know exactly what to fix.
+          </p>
+        </div>
+      </details>
 
       {/* Workspace: 1 col → 2 cols (lg) → 3 cols (2xl). Bottom padding leaves room for the mobile action bar. */}
       <div className="grid flex-1 gap-4 p-4 pb-24 sm:p-6 sm:pb-24 lg:grid-cols-2 lg:pb-6 2xl:grid-cols-12">

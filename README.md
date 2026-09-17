@@ -75,6 +75,8 @@ Press **⌘K** (Ctrl+K) for the command palette: run, load the sample, toggle an
 
 The app is dark by default, following TypeSafe's ink-and-paper palette. **Light** in the top bar switches themes and remembers your choice. On wide screens the three steps sit side by side: text, checks, results. Press **⌘/Ctrl + Enter** inside the editor to run.
 
+The interface reveals detail progressively. Checks show just their name until you open one to see what it looks for and the exact question Jev is asked. Results open automatically only where there's something to look at: issues and low-confidence checks start expanded, passes start collapsed to a one-line verdict, and **Expand all** flips everything. The reasoning behind the app sits under **Why?** in the strip below the header.
+
 Each card shows:
 
 - the **verdict** in plain words, with a ✓ / ⚠ / ? icon (the icon shape changes as well as the colour, so it works without colour vision)
