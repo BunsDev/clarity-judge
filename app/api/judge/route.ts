@@ -1,4 +1,4 @@
-import { callJev } from "@/lib/jevClient";
+import { JEV_MODEL, callJevDetailed } from "@/lib/jevClient";
 import { mockCallJev } from "@/lib/mockJevClient";
 import { redactSecrets } from "@/lib/redact";
 import { JevApiError, type JevErrorPayload, type JevQuestion, type JevRequest } from "@/types/jev";
@@ -17,7 +17,7 @@ import { JevApiError, type JevErrorPayload, type JevQuestion, type JevRequest } 
  * Error bodies are passed through redactSecrets() so a key can never be echoed
  * back to the screen, and nothing here logs the key.
  *
- * Success:  200 { answers: JevAnswer[], demo: boolean }
+ * Success:  200 { answers, demo, model, latencyMs, usage: { inputTokens?, outputTokens? } }
  * Failure:  4xx/5xx { error, code, status?, raw? }   (see JevErrorPayload)
  */
 
@@ -35,6 +35,12 @@ function errorResponse(error: JevApiError): Response {
   // Pass rate-limit / auth statuses through so the client can react; otherwise 502.
   const status = error.status && error.status >= 400 && error.status < 600 ? error.status : 502;
   return Response.json(payload, { status });
+}
+
+/** Rough token estimate for demo mode, so the readout has something to show. */
+function estimateUsage(request: JevRequest) {
+  const chars = request.context.length + request.questions.reduce((n, q) => n + q.question.length, 0);
+  return { inputTokens: Math.ceil(chars / 4), outputTokens: request.questions.length };
 }
 
 /** Very small hand-written validator. Returns an error message or null. */
@@ -70,8 +76,11 @@ export async function POST(request: Request): Promise<Response> {
   const apiKey = request.headers.get(API_KEY_HEADER)?.trim() || process.env.TYPESAFE_API_KEY?.trim() || "";
 
   try {
-    const answers = apiKey ? await callJev(jevRequest, apiKey) : await mockCallJev(jevRequest, { delayMs: 0 });
-    return Response.json({ answers, demo: !apiKey });
+    const started = Date.now();
+    const { answers, usage } = apiKey
+      ? await callJevDetailed(jevRequest, apiKey)
+      : { answers: await mockCallJev(jevRequest, { delayMs: 0 }), usage: estimateUsage(jevRequest) };
+    return Response.json({ answers, demo: !apiKey, model: apiKey ? JEV_MODEL : "simulated", latencyMs: Date.now() - started, usage });
   } catch (error) {
     if (error instanceof JevApiError) return errorResponse(error);
     const message = error instanceof Error ? error.message : String(error);

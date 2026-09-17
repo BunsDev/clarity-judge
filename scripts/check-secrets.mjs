@@ -9,7 +9,7 @@
  * No dependencies on purpose, so it runs before `npm install` finishes and in CI.
  */
 import { execSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 
 const PATTERNS = [
   { name: "TypeSafe API key", regex: /apikey_[A-Za-z0-9_]{30,}/ },
@@ -27,6 +27,28 @@ const PATTERNS = [
 /** Files that legitimately contain the patterns above (this scanner, lockfiles). */
 const SKIP_PATHS = [/^scripts\/check-secrets\.mjs$/, /package-lock\.json$/, /\.lock$/];
 
+/**
+ * Paths that should never be uploaded, whatever they contain: local tool
+ * state, build output, credentials files, private keys, OS cruft.
+ */
+const BLOCKED_PATHS = [
+  { name: "Vercel project link", regex: /(^|\/)\.vercel(\/|$)/ },
+  { name: "build output", regex: /(^|\/)(\.next|out|dist|build)(\/|$)/ },
+  { name: "dependencies", regex: /(^|\/)node_modules(\/|$)/ },
+  { name: "private key file", regex: /\.(pem|key|p12|pfx|jks|keystore)$|(^|\/)id_(rsa|ed25519|ecdsa|dsa)(\.pub)?$/ },
+  { name: "credentials file", regex: /(^|\/)(\.npmrc|\.pypirc|\.netrc|\.aws\/credentials|\.git-credentials|credentials\.json|service-account.*\.json|\.htpasswd)$/ },
+  { name: "OS / editor cruft", regex: /(^|\/)(\.DS_Store|Thumbs\.db)$/ },
+  { name: "database / dump", regex: /\.(sqlite|sqlite3|db|sql\.gz|dump)$/ },
+];
+
+/** Anything above this size is almost certainly not source and should not be uploaded by accident. */
+const MAX_FILE_BYTES = 5 * 1024 * 1024;
+
+function blockedPathReason(path) {
+  const hit = BLOCKED_PATHS.find((b) => b.regex.test(path));
+  return hit ? hit.name : null;
+}
+
 function sh(command) {
   return execSync(command, { encoding: "utf8" });
 }
@@ -43,6 +65,14 @@ if (staged) {
   const files = sh("git diff --cached --name-only --diff-filter=ACMR").split("\n").filter(Boolean);
   for (const file of files) {
     if (isEnvFile(file)) findings.push({ file, line: 0, name: "env file staged for commit", text: file });
+    const reason = blockedPathReason(file);
+    if (reason) findings.push({ file, line: 0, name: `${reason} staged for commit`, text: file });
+    try {
+      const size = statSync(file).size;
+      if (size > MAX_FILE_BYTES) findings.push({ file, line: 0, name: "oversized file staged", text: `${(size / 1048576).toFixed(1)} MB` });
+    } catch {
+      // deleted in the index; nothing to size
+    }
   }
   // Only scan ADDED lines so old, already-reviewed content doesn't block commits.
   const diff = sh("git diff --cached --unified=0 --no-color");
@@ -66,6 +96,8 @@ if (staged) {
   const files = sh("git ls-files").split("\n").filter(Boolean);
   for (const file of files) {
     if (isEnvFile(file)) findings.push({ file, line: 0, name: "env file tracked by git", text: file });
+    const reason = blockedPathReason(file);
+    if (reason) findings.push({ file, line: 0, name: `${reason} tracked by git`, text: file });
     if (SKIP_PATHS.some((p) => p.test(file))) continue;
     let content;
     try {
@@ -91,11 +123,11 @@ function mask(value) {
 }
 
 if (findings.length > 0) {
-  console.error("\n✖ Possible secrets found. Commit blocked.\n");
+  console.error(`\n✖ ${staged ? "Commit" : "Push"} blocked: possible secrets or files that must not be uploaded.\n`);
   for (const f of findings) {
     console.error(`  ${f.file}${f.line ? `:${f.line}` : ""}  ${f.name}  →  ${f.text}`);
   }
-  console.error("\nMove secrets into .env.local (gitignored) and reference them via process.env.\n");
+  console.error("\nMove secrets into .env.local (gitignored) and reference them via process.env. Add local-only paths to .gitignore.\n");
   process.exit(1);
 }
 

@@ -167,15 +167,22 @@ export function describeHttpError(status: number, raw: string): JevApiError {
  * @param apiKey Defaults to TYPESAFE_API_KEY from the environment. The API
  *   route passes a browser-supplied key here when the user saved one in the UI.
  */
-export async function callJev(
+export async function callJev(request: JevRequest, apiKey?: string): Promise<JevAnswer[]> {
+  return (await callJevDetailed(request, apiKey)).answers;
+}
+
+export type JevUsage = { inputTokens?: number; outputTokens?: number };
+
+/** Same as callJev, but also returns Jev's token usage for the request. */
+export async function callJevDetailed(
   request: JevRequest,
   apiKey: string | undefined = process.env.TYPESAFE_API_KEY,
-): Promise<JevAnswer[]> {
+): Promise<{ answers: JevAnswer[]; usage: JevUsage }> {
   apiKey = apiKey?.trim();
   if (!apiKey) {
     throw new JevApiError("No TypeSafe API key available.", "auth");
   }
-  if (request.questions.length === 0) return [];
+  if (request.questions.length === 0) return { answers: [], usage: {} };
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -215,5 +222,8 @@ export async function callJev(
     throw new JevApiError("TypeSafe returned a response that wasn't valid JSON.", "bad_response", response.status, rawText);
   }
 
-  return normalizeAnswers(request, body);
+  return {
+    answers: normalizeAnswers(request, body),
+    usage: { inputTokens: body.usage?.input_tokens, outputTokens: body.usage?.output_tokens },
+  };
 }

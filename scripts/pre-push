@@ -1,0 +1,5 @@
+#!/bin/sh
+# Installed into .git/hooks by `npm install` (see scripts/install-hooks.mjs).
+# Second line of defence: even if a commit slipped past the pre-commit hook
+# (e.g. --no-verify), refuse to push a tree that contains anything secret-shaped.
+exec node "$(git rev-parse --show-toplevel)/scripts/check-secrets.mjs"

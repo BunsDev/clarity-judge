@@ -104,7 +104,11 @@ function YesNoStrip({ probability, threshold, fill }: { probability: number; thr
       <div className="relative h-4 border border-line-strong bg-bg" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="Probability of yes">
         <div className="hatch absolute inset-y-0" style={{ left: `${lo}%`, width: `${Math.max(0, hi - lo)}%` }} aria-hidden />
         <div className={`absolute inset-y-0 left-0 ${fill} opacity-30`} style={{ width: `${pct}%` }} aria-hidden />
-        <div className={`absolute inset-y-0 w-0.5 ${fill}`} style={{ left: `calc(${pct}% - 1px)` }} aria-hidden />
+        <div
+          className={`absolute inset-y-0 w-0.5 ${fill} ${fill === "bg-pink" ? "glow-pink" : fill === "bg-teal" ? "glow-teal" : ""}`}
+          style={{ left: `calc(${pct}% - 1px)` }}
+          aria-hidden
+        />
       </div>
       <div className="flex justify-between font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
         <span>No</span>

@@ -71,6 +71,8 @@ with the summary *"3 of 7 checks passed. Review hedging language, em dash usage,
 
 With a real key the verdicts are Jev's own and will differ — you'd expect it to be harsher on clarity and actionability for this paragraph than the demo is.
 
+Press **⌘K** (Ctrl+K) for the command palette: run, load the sample, toggle any check, switch theme, change the key. The header readout shows the model, latency, and token usage of the last run, straight from Jev's response. On phones the Run button lives in a bar at the bottom of the screen.
+
 The app is dark by default, following TypeSafe's ink-and-paper palette. **Light** in the top bar switches themes and remembers your choice. On wide screens the three steps sit side by side: text, checks, results. Press **⌘/Ctrl + Enter** inside the editor to run.
 
 Each card shows:
@@ -112,6 +114,8 @@ components/
   ApiKeySetupGuide.tsx   Environment-aware server-side setup steps
   Window.tsx             Bordered panel with an inverted mono title bar
   ThemeToggle.tsx        Dark / light switch, persisted in localStorage
+  CommandPalette.tsx     ⌘K palette: every action, keyboard-first
+  StatusReadout.tsx      Header readout: model, latency, tokens of the last run
   icons.tsx              Tiny inline SVG icons
 lib/
   builtInAxes.ts         The 7 default checks, defined as data — add a new one here
@@ -125,7 +129,8 @@ lib/
   errors.ts              Turns an error code into a title, explanation, and next actions
 scripts/
   check-secrets.mjs      Secret scanner (pre-commit + CI)
-  pre-commit             Git hook installed by `npm install`
+  pre-commit             Git hook: scans staged changes (installed by `npm install`)
+  pre-push               Git hook: scans the whole tree before pushing
   sampleText.ts          The pre-loaded paragraph
 types/
   axis.ts, jev.ts, results.ts
@@ -166,7 +171,8 @@ There are two ways to give the app a key. Either way, the key is only ever sent 
 
 ### Guard rails against leaking a key
 
-- **Pre-commit hook.** `npm install` installs `scripts/pre-commit` into `.git/hooks`. It runs `scripts/check-secrets.mjs --staged`, which blocks the commit if any *added* line looks like a credential (TypeSafe `apikey_…`, OpenAI/GitHub/AWS/Slack tokens, private-key blocks, or `TYPESAFE_API_KEY=` with a real value) or if any `.env*` file other than `.env.local.example` is staged. Findings are printed masked, never in full.
+- **Pre-commit hook.** `npm install` installs `scripts/pre-commit` into `.git/hooks`. It runs `scripts/check-secrets.mjs --staged`, which blocks the commit if any *added* line looks like a credential (TypeSafe `apikey_…`, OpenAI/GitHub/AWS/Slack tokens, private-key blocks, or `TYPESAFE_API_KEY=` with a real value), if any `.env*` file other than `.env.local.example` is staged, if a file that should never be uploaded is staged (`.vercel/`, build output, `node_modules`, `*.pem`/`*.key`/`*.p12`, `.npmrc`, SSH keys, `.DS_Store`, database dumps), or if a staged file is over 5 MB. Findings are printed masked, never in full.
+- **Pre-push hook.** `scripts/pre-push` runs the same scanner over every tracked file before a push, so a commit that slipped past with `--no-verify` still can't leave the machine.
 - **CI.** `.github/workflows/ci.yml` runs the same scanner over every tracked file, then lint, typecheck, tests, and build, on every push and pull request.
 - **Manual scan.** `npm run check:secrets` at any time.
 - **Redaction.** Error messages shown in the UI pass through `lib/redact.ts`, which masks anything key-shaped, so even a misbehaving upstream error can't put the key on screen. Nothing on the server logs the key.

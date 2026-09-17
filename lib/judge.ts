@@ -1,7 +1,7 @@
 import type { Axis } from "@/types/axis";
 import type { JevAnswer, JevErrorPayload, JevQuestion, JevRequest } from "@/types/jev";
 import { JevApiError } from "@/types/jev";
-import type { AxisResult, Evidence } from "@/types/results";
+import type { AxisResult, Evidence, Telemetry } from "@/types/results";
 import { pickEvidence, scoreSentence, splitSentences } from "./evidenceHeuristic";
 import { mockCallJev } from "./mockJevClient";
 
@@ -108,8 +108,20 @@ export function keywordLean(text: string, axis: Axis): number {
   return Math.min(0.9, 0.25 + hits * 0.11);
 }
 
+type LiveResponse = {
+  answers: JevAnswer[];
+  demo?: boolean;
+  model?: string;
+  latencyMs?: number;
+  usage?: { inputTokens?: number; outputTokens?: number };
+};
+
 /** Post to our API route and return answers, or throw a JevApiError. */
 async function fetchLiveAnswers(request: JevRequest, apiKey?: string): Promise<JevAnswer[]> {
+  return (await fetchLive(request, apiKey)).answers;
+}
+
+async function fetchLive(request: JevRequest, apiKey?: string): Promise<LiveResponse> {
   let response: Response;
   try {
     response = await fetch("/api/judge", {
@@ -134,7 +146,7 @@ async function fetchLiveAnswers(request: JevRequest, apiKey?: string): Promise<J
     throw new JevApiError(payload.error ?? `Request failed with HTTP ${response.status}.`, payload.code ?? "unknown", response.status, payload.raw);
   }
 
-  return (body as { answers: JevAnswer[] }).answers;
+  return body as LiveResponse;
 }
 
 /**
@@ -178,23 +190,51 @@ async function pickEvidenceWithJev(text: string, axes: Axis[], apiKey?: string):
 }
 
 export async function runJudgment(text: string, axes: Axis[], options: RunOptions): Promise<AxisResult[]> {
+  return (await runJudgmentDetailed(text, axes, options)).results;
+}
+
+/** Like runJudgment, plus timing and token usage for the header readout. */
+export async function runJudgmentDetailed(
+  text: string,
+  axes: Axis[],
+  options: RunOptions,
+): Promise<{ results: AxisResult[]; telemetry: Telemetry }> {
   const request = axesToRequest(text, axes);
+  const started = performance.now();
 
   let answers: JevAnswer[];
+  let usage: { inputTokens?: number; outputTokens?: number } = {};
+  let model = "simulated";
   if (options.demoMode) {
     const lean: Record<string, number> = {};
     for (const axis of axes) lean[axis.id] = keywordLean(text, axis);
     answers = await mockCallJev(request, { lean });
+    usage = { inputTokens: Math.ceil(request.context.length / 4), outputTokens: axes.length };
   } else {
-    answers = await fetchLiveAnswers(request, options.apiKey);
+    const live = await fetchLive(request, options.apiKey);
+    answers = live.answers;
+    usage = live.usage ?? {};
+    model = live.model ?? "jev-latest";
   }
 
   const jevEvidence =
     !options.demoMode && options.jevEvidence ? await pickEvidenceWithJev(text, axes, options.apiKey) : {};
 
-  return axes.map((axis) => {
+  const results = axes.map((axis) => {
     const answer = answers.find((a) => a.id === axis.id);
     const evidence = jevEvidence[axis.id] ?? pickEvidence(text, axis);
     return answerToResult(axis, answer, evidence);
   });
+
+  const telemetry: Telemetry = {
+    latencyMs: Math.round(performance.now() - started),
+    inputTokens: usage.inputTokens,
+    outputTokens: usage.outputTokens,
+    model,
+    source: options.demoMode ? "simulated" : "jev",
+    questions: axes.length,
+    at: Date.now(),
+  };
+
+  return { results, telemetry };
 }

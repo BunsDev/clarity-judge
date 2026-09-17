@@ -43,6 +43,19 @@ export type Summary = {
 
 export type JudgmentStatus = "idle" | "running" | "done" | "error";
 
+/** Facts about the last run, shown as a readout in the header. */
+export type Telemetry = {
+  /** Wall-clock time for the whole run, in milliseconds. */
+  latencyMs: number;
+  /** Tokens Jev billed for the text + questions, if it told us. */
+  inputTokens?: number;
+  outputTokens?: number;
+  model: string;
+  source: "jev" | "simulated";
+  questions: number;
+  at: number;
+};
+
 export type Settings = {
   /** 0–1. Axes with confidence below this are flagged for a human look. */
   threshold: number;
