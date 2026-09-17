@@ -6,7 +6,7 @@
  *   node scripts/check-secrets.mjs --staged   # pre-commit: scan staged changes only
  *   node scripts/check-secrets.mjs            # CI / manual: scan every tracked file
  *
- * No dependencies on purpose, so it runs before `npm install` finishes and in CI.
+ * No dependencies on purpose, so it runs before `pnpm install` finishes and in CI.
  */
 import { execSync } from "node:child_process";
 import { readFileSync, statSync } from "node:fs";
@@ -18,6 +18,7 @@ const PATTERNS = [
   { name: "AWS access key", regex: /\bAKIA[0-9A-Z]{16}\b/ },
   { name: "Slack token", regex: /\bxox[baprs]-[A-Za-z0-9-]{10,}/ },
   { name: "Private key block", regex: /-----BEGIN (?:RSA |OPENSSH |EC |DSA |PGP )?PRIVATE KEY/ },
+  { name: "npm registry auth token", regex: /_authToken\s*=\s*\S+/ },
   {
     name: "TYPESAFE_API_KEY with a real value",
     regex: /TYPESAFE_API_KEY\s*[=:]\s*["']?(?!your_key_here|<|\$|$)[A-Za-z0-9_]{16,}/,
@@ -36,7 +37,7 @@ const BLOCKED_PATHS = [
   { name: "build output", regex: /(^|\/)(\.next|out|dist|build)(\/|$)/ },
   { name: "dependencies", regex: /(^|\/)node_modules(\/|$)/ },
   { name: "private key file", regex: /\.(pem|key|p12|pfx|jks|keystore)$|(^|\/)id_(rsa|ed25519|ecdsa|dsa)(\.pub)?$/ },
-  { name: "credentials file", regex: /(^|\/)(\.npmrc|\.pypirc|\.netrc|\.aws\/credentials|\.git-credentials|credentials\.json|service-account.*\.json|\.htpasswd)$/ },
+  { name: "credentials file", regex: /(^|\/)(\.pypirc|\.netrc|\.aws\/credentials|\.git-credentials|credentials\.json|service-account.*\.json|\.htpasswd)$/ },
   { name: "OS / editor cruft", regex: /(^|\/)(\.DS_Store|Thumbs\.db)$/ },
   { name: "database / dump", regex: /\.(sqlite|sqlite3|db|sql\.gz|dump)$/ },
 ];

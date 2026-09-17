@@ -21,13 +21,13 @@ All the questions in one run go out in one request, so seven checks cost one rou
 
 ## Setup
 
-**Prerequisites:** Node.js 20 or newer.
+**Prerequisites:** Node.js 20 or newer and [pnpm](https://pnpm.io) 10 (`corepack enable` gives you the pinned version automatically). The project refuses `pnpm install` and `yarn` so everyone shares one lockfile.
 
 ```bash
 git clone <this-repo-url> clarity-judge
 cd clarity-judge
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 Open http://localhost:3000. That's demo mode — you'll see a yellow banner and simulated results. Everything is clickable.
@@ -43,7 +43,7 @@ Open http://localhost:3000. That's demo mode — you'll see a yellow banner and 
    # TYPESAFE_API_KEY=your_key_here
    ```
 
-3. Restart the dev server (`Ctrl+C`, then `npm run dev` again). The banner disappears and the badge in the header switches to **Live · server key**.
+3. Restart the dev server (`Ctrl+C`, then `pnpm dev` again). The banner disappears and the badge in the header switches to **Live · server key**.
 
 Prefer not to touch files? Paste the key into the **API key** panel in the app instead — see [API keys and keeping them secret](#api-keys-and-keeping-them-secret).
 
@@ -129,7 +129,7 @@ lib/
   errors.ts              Turns an error code into a title, explanation, and next actions
 scripts/
   check-secrets.mjs      Secret scanner (pre-commit + CI)
-  pre-commit             Git hook: scans staged changes (installed by `npm install`)
+  pre-commit             Git hook: scans staged changes (installed by `pnpm install`)
   pre-push               Git hook: scans the whole tree before pushing
   sampleText.ts          The pre-loaded paragraph
 types/
@@ -171,10 +171,10 @@ There are two ways to give the app a key. Either way, the key is only ever sent 
 
 ### Guard rails against leaking a key
 
-- **Pre-commit hook.** `npm install` installs `scripts/pre-commit` into `.git/hooks`. It runs `scripts/check-secrets.mjs --staged`, which blocks the commit if any *added* line looks like a credential (TypeSafe `apikey_…`, OpenAI/GitHub/AWS/Slack tokens, private-key blocks, or `TYPESAFE_API_KEY=` with a real value), if any `.env*` file other than `.env.local.example` is staged, if a file that should never be uploaded is staged (`.vercel/`, build output, `node_modules`, `*.pem`/`*.key`/`*.p12`, `.npmrc`, SSH keys, `.DS_Store`, database dumps), or if a staged file is over 5 MB. Findings are printed masked, never in full.
+- **Pre-commit hook.** `pnpm install` installs `scripts/pre-commit` into `.git/hooks`. It runs `scripts/check-secrets.mjs --staged`, which blocks the commit if any *added* line looks like a credential (TypeSafe `apikey_…`, OpenAI/GitHub/AWS/Slack tokens, private-key blocks, or `TYPESAFE_API_KEY=` with a real value), if any `.env*` file other than `.env.local.example` is staged, if a file that should never be uploaded is staged (`.vercel/`, build output, `node_modules`, `*.pem`/`*.key`/`*.p12`, `.npmrc`, SSH keys, `.DS_Store`, database dumps), or if a staged file is over 5 MB. Findings are printed masked, never in full.
 - **Pre-push hook.** `scripts/pre-push` runs the same scanner over every tracked file before a push, so a commit that slipped past with `--no-verify` still can't leave the machine.
 - **CI.** `.github/workflows/ci.yml` runs the same scanner over every tracked file, then lint, typecheck, tests, and build, on every push and pull request.
-- **Manual scan.** `npm run check:secrets` at any time.
+- **Manual scan.** `pnpm check:secrets` at any time.
 - **Redaction.** Error messages shown in the UI pass through `lib/redact.ts`, which masks anything key-shaped, so even a misbehaving upstream error can't put the key on screen. Nothing on the server logs the key.
 - **`.gitignore`** already covers `.env*`, with an explicit exception for `.env.local.example`.
 
@@ -195,13 +195,13 @@ Every error is shown as a window with a plain-language title, an explanation of 
 ## Scripts
 
 ```bash
-npm run dev        # start the dev server
-npm run build      # production build
-npm start          # serve the production build
-npm test           # unit tests (vitest) for the lib/ helpers and the API route
-npm run lint       # eslint
-npm run typecheck  # tsc --noEmit
-npm run check:secrets  # scan tracked files for anything that looks like a credential
+pnpm dev            # start the dev server
+pnpm build          # production build
+pnpm start          # serve the production build
+pnpm test           # unit tests (vitest) for the lib/ helpers and the API route
+pnpm lint           # eslint
+pnpm typecheck      # tsc --noEmit
+pnpm check:secrets  # scan tracked files for anything that looks like a credential
 ```
 
 ## Extending it

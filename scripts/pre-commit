@@ -1,4 +1,4 @@
 #!/bin/sh
-# Installed into .git/hooks by `npm install` (see scripts/install-hooks.mjs).
+# Installed into .git/hooks by `pnpm install` (see scripts/install-hooks.mjs).
 # Blocks commits that contain anything that looks like a credential.
 exec node "$(git rev-parse --show-toplevel)/scripts/check-secrets.mjs" --staged

@@ -1,6 +1,6 @@
 /**
  * Copies scripts/pre-commit and scripts/pre-push into .git/hooks so the secret
- * scanner runs before every commit and again before every push. Runs automatically via the `prepare` npm script; harmless when
+ * scanner runs before every commit and again before every push. Runs automatically via the `prepare` script on `pnpm install`; harmless when
  * there's no .git directory (e.g. inside a deployment build).
  */
 import { chmodSync, copyFileSync, existsSync, mkdirSync } from "node:fs";

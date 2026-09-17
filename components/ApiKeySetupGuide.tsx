@@ -35,7 +35,7 @@ export function ApiKeySetupGuide({ deployTarget }: Props) {
               <pre className={preClass}>TYPESAFE_API_KEY=your_key_here</pre>
             </li>
             <li>
-              Restart the dev server (<code className={codeClass}>npm run dev</code>).
+              Restart the dev server (<code className={codeClass}>pnpm dev</code>).
             </li>
           </ol>
         )}
