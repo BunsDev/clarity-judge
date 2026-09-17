@@ -3,8 +3,9 @@ import Link from "next/link";
 import { ArrowRight, AudioLines, CircleHelp, Eraser, Eye, EyeOff, ListTodo, Minus, Plus, type LucideIcon } from "lucide-react";
 import { BUILT_IN_AXES } from "@/lib/builtInAxes";
 import { Heading } from "@/components/ui";
+import { pageMetadata } from "@/lib/social";
 
-export const metadata: Metadata = { title: "Checks" };
+export const metadata: Metadata = pageMetadata("checks");
 
 const icons: Record<string, LucideIcon> = {
   hedging: CircleHelp,

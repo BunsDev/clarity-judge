@@ -9,6 +9,7 @@ import { API_KEY_EVENT, clearApiKey, loadApiKey, saveApiKey } from "@/lib/storag
 import { GITHUB_URL, externalLinks, navGroups, navPages } from "@/lib/nav";
 import type { Telemetry } from "@/types/results";
 import { ApiKeyDialog } from "./ApiKeyDialog";
+import { BrandMark } from "./BrandMark";
 import { ShellContext, type ShellState } from "./ShellContext";
 
 type Props = {
@@ -131,8 +132,7 @@ export function Shell({ serverHasKey, deployTarget, children }: Props) {
           <div className="sidebar-title-row">
             <Link className="brand" href="/" aria-label="Clarity Judge home">
               <span className="brand-mark">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/brand/mark.jpg" width={30} height={30} alt="" />
+                <BrandMark size={30} />
               </span>
               <span>
                 Clarity Judge

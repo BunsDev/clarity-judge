@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, KeyRound, Sigma } from "lucide-react";
 import { Heading } from "@/components/ui";
+import { pageMetadata } from "@/lib/social";
 
-export const metadata: Metadata = { title: "How it works" };
+export const metadata: Metadata = pageMetadata("how-it-works");
 
 const steps = [
   {

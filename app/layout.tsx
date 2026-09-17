@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import { Shell } from "@/components/Shell";
 import { getDeployTarget } from "@/lib/env";
+import { SITE_URL } from "@/lib/social";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: { default: "Clarity Judge", template: "%s · Clarity Judge" },
-  description: "Multi-axis writing quality checker powered by TypeSafe's Jev model.",
+  description: "Separate, named writing checks, each answered by TypeSafe's Jev with its own verdict and confidence.",
+  applicationName: "Clarity Judge",
+  openGraph: { siteName: "Clarity Judge", type: "website" },
 };
 
 // The shell needs to know whether a server key exists on every request, not

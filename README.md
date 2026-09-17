@@ -108,6 +108,8 @@ The UI provides actionable error messages and an expandable upstream response. T
 | `components/JudgeWorkspace.tsx` | Client state and the judgment workflow. |
 | `components/SourcePanel.tsx`, `components/CheckChips.tsx`, `components/CustomAxisBuilder.tsx` | Text input, built-in and custom check selection. |
 | `components/ApiKeyDialog.tsx` | The only place a key is typed; masked, never displayed again. |
+| `components/BrandMark.tsx`, `app/icon.svg`, `app/apple-icon.tsx` | The Clarity Judge mark, drawn once and reused for the sidebar and icons. |
+| `lib/social.ts`, `lib/social-image.tsx`, `app/**/opengraph-image.tsx` | Per-page metadata and generated social preview images. |
 | `app/checks/page.tsx`, `app/how-it-works/page.tsx` | Reference pages generated from the check definitions. |
 | `components/ResultsPanel.tsx`, `components/AxisResultCard.tsx` | Result, evidence, and uncertainty presentation. |
 | `lib/builtInAxes.ts` | Named built-in checks. |
