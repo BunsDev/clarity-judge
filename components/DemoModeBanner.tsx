@@ -1,15 +1,12 @@
-import { WarningIcon } from "./icons";
-
 export function DemoModeBanner() {
   return (
-    <div
-      role="status"
-      className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
-    >
-      <WarningIcon className="mt-0.5 h-4 w-4 shrink-0" />
-      <p>
-        <span className="font-semibold">Demo mode</span> — no API key set. Showing simulated results. Everything
-        works, but the verdicts are made up. Add a key to get real judgments from Jev.
+    <div role="status" className="flex items-start gap-3 border border-pink bg-pink/10 px-3 py-2.5 text-sm text-ink">
+      <span className="mt-0.5 shrink-0 bg-pink px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[#1e1e1e]">
+        Demo mode
+      </span>
+      <p className="text-ink-2">
+        No API key set. Showing simulated results. Everything works, but the verdicts are made up. Add a key below to
+        get real judgments from Jev.
       </p>
     </div>
   );

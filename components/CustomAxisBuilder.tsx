@@ -20,6 +20,24 @@ function slugify(label: string): string {
   return label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "option";
 }
 
+const inputClass =
+  "w-full border border-line bg-bg px-2.5 py-1.5 text-sm text-ink outline-none transition placeholder:text-muted focus:border-ink";
+const labelClass = "font-mono text-[10px] uppercase tracking-[0.14em] text-muted";
+
+function Segment({ active, tone = "ink", children, ...rest }: { active: boolean; tone?: "ink" | "teal" | "pink"; children: React.ReactNode } & React.LabelHTMLAttributes<HTMLLabelElement>) {
+  const activeClass = { ink: "border-ink bg-ink text-bg", teal: "border-teal bg-teal/15 text-teal", pink: "border-pink bg-pink/15 text-pink" }[tone];
+  return (
+    <label
+      {...rest}
+      className={`flex-1 cursor-pointer border px-3 py-1.5 text-center font-mono text-[11px] uppercase tracking-[0.12em] transition ${
+        active ? activeClass : "border-line text-ink-2 hover:border-line-strong"
+      }`}
+    >
+      {children}
+    </label>
+  );
+}
+
 export function CustomAxisBuilder({ onAdd, disabled }: Props) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -59,13 +77,12 @@ export function CustomAxisBuilder({ onAdd, disabled }: Props) {
       question: question.trim(),
       goodLooksLike: goodLooksLike.trim() || undefined,
       builtIn: false,
-      // Help the local evidence heuristic by looking for words from the question.
       evidenceHint: { keywords: [] },
     };
 
     const axis: Axis =
       kind === "yes_no"
-        ? { ...base, kind: "yes_no", issueWhen: yesIsIssue, yesLabel: undefined, noLabel: undefined }
+        ? { ...base, kind: "yes_no", issueWhen: yesIsIssue }
         : {
             ...base,
             kind: "choice",
@@ -84,15 +101,12 @@ export function CustomAxisBuilder({ onAdd, disabled }: Props) {
         type="button"
         onClick={() => setOpen(true)}
         disabled={disabled}
-        className="w-full rounded-lg border border-dashed border-zinc-300 px-3 py-2.5 text-sm font-medium text-zinc-600 hover:border-indigo-400 hover:text-indigo-700 disabled:opacity-50"
+        className="w-full border border-dashed border-line-strong px-3 py-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-2 transition hover:border-pink hover:text-pink disabled:opacity-50"
       >
         + Add a custom check
       </button>
     );
   }
-
-  const inputClass =
-    "w-full rounded-md border border-zinc-300 bg-white px-2.5 py-1.5 text-sm text-zinc-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200";
 
   return (
     <form
@@ -100,39 +114,41 @@ export function CustomAxisBuilder({ onAdd, disabled }: Props) {
         event.preventDefault();
         submit();
       }}
-      className="space-y-3 rounded-lg border border-indigo-200 bg-white p-4"
+      className="space-y-3 border border-line-strong bg-panel-2 p-3"
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-zinc-900">New custom check</h3>
-        <button type="button" onClick={() => { reset(); setOpen(false); }} className="text-xs text-zinc-500 hover:underline">
+        <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink">New custom check</h3>
+        <button
+          type="button"
+          onClick={() => {
+            reset();
+            setOpen(false);
+          }}
+          className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted hover:text-ink"
+        >
           Cancel
         </button>
       </div>
 
       <label className="block space-y-1">
-        <span className="text-xs font-medium text-zinc-700">Name</span>
+        <span className={labelClass}>Name</span>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Is this on-brand?" className={inputClass} />
       </label>
 
       <fieldset className="space-y-1">
-        <legend className="text-xs font-medium text-zinc-700">Answer type</legend>
-        <div className="flex gap-2">
+        <legend className={labelClass}>Answer type</legend>
+        <div className="flex gap-1.5">
           {(["yes_no", "choice"] as Kind[]).map((value) => (
-            <label
-              key={value}
-              className={`flex-1 cursor-pointer rounded-md border px-3 py-1.5 text-center text-sm ${
-                kind === value ? "border-indigo-500 bg-indigo-50 text-indigo-800" : "border-zinc-300 text-zinc-700"
-              }`}
-            >
+            <Segment key={value} active={kind === value}>
               <input type="radio" name="kind" value={value} checked={kind === value} onChange={() => setKind(value)} className="sr-only" />
-              {value === "yes_no" ? "Yes / No" : "Pick one option"}
-            </label>
+              {value === "yes_no" ? "Yes / No" : "Pick one"}
+            </Segment>
           ))}
         </div>
       </fieldset>
 
       <label className="block space-y-1">
-        <span className="text-xs font-medium text-zinc-700">Question to ask</span>
+        <span className={labelClass}>Question to ask</span>
         <textarea
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
@@ -140,46 +156,42 @@ export function CustomAxisBuilder({ onAdd, disabled }: Props) {
           placeholder={kind === "yes_no" ? "Does this text sound like our brand voice?" : "Which audience is this text written for?"}
           className={inputClass}
         />
-        {kind === "yes_no" && <span className="text-[11px] text-zinc-500">Phrase it so that &ldquo;yes&rdquo; has an unambiguous meaning.</span>}
+        {kind === "yes_no" && <span className="block text-[11px] text-muted">Phrase it so that &ldquo;yes&rdquo; has one clear meaning.</span>}
       </label>
 
       {kind === "yes_no" ? (
         <fieldset className="space-y-1">
-          <legend className="text-xs font-medium text-zinc-700">A &ldquo;yes&rdquo; answer means…</legend>
-          <div className="flex gap-2">
-            <label className={`flex-1 cursor-pointer rounded-md border px-3 py-1.5 text-center text-sm ${!yesIsIssue ? "border-emerald-500 bg-emerald-50 text-emerald-800" : "border-zinc-300 text-zinc-700"}`}>
+          <legend className={labelClass}>A &ldquo;yes&rdquo; answer means</legend>
+          <div className="flex gap-1.5">
+            <Segment active={!yesIsIssue} tone="teal">
               <input type="radio" name="yesMeans" checked={!yesIsIssue} onChange={() => setYesIsIssue(false)} className="sr-only" />
               The text passes
-            </label>
-            <label className={`flex-1 cursor-pointer rounded-md border px-3 py-1.5 text-center text-sm ${yesIsIssue ? "border-amber-500 bg-amber-50 text-amber-800" : "border-zinc-300 text-zinc-700"}`}>
+            </Segment>
+            <Segment active={yesIsIssue} tone="pink">
               <input type="radio" name="yesMeans" checked={yesIsIssue} onChange={() => setYesIsIssue(true)} className="sr-only" />
               There&apos;s a problem
-            </label>
+            </Segment>
           </div>
         </fieldset>
       ) : (
         <>
           <label className="block space-y-1">
-            <span className="text-xs font-medium text-zinc-700">Options (one per line)</span>
-            <textarea
-              value={optionsText}
-              onChange={(e) => setOptionsText(e.target.value)}
-              rows={3}
-              placeholder={"Engineers\nExecutives\nGeneral public"}
-              className={inputClass}
-            />
+            <span className={labelClass}>Options (one per line)</span>
+            <textarea value={optionsText} onChange={(e) => setOptionsText(e.target.value)} rows={3} placeholder={"Engineers\nExecutives\nGeneral public"} className={inputClass} />
           </label>
           {parsedOptions.length > 0 && (
             <fieldset className="space-y-1">
-              <legend className="text-xs font-medium text-zinc-700">Which options count as a problem? (optional)</legend>
-              <div className="flex flex-wrap gap-2">
+              <legend className={labelClass}>Which options count as a problem? (optional)</legend>
+              <div className="flex flex-wrap gap-1.5">
                 {parsedOptions.map((label) => {
                   const value = slugify(label);
                   const checked = issueOptions.includes(value);
                   return (
                     <label
                       key={value}
-                      className={`cursor-pointer rounded-full border px-2.5 py-1 text-xs ${checked ? "border-amber-500 bg-amber-50 text-amber-800" : "border-zinc-300 text-zinc-700"}`}
+                      className={`cursor-pointer border px-2 py-1 font-mono text-[11px] transition ${
+                        checked ? "border-pink bg-pink/15 text-pink" : "border-line text-ink-2 hover:border-line-strong"
+                      }`}
                     >
                       <input
                         type="checkbox"
@@ -198,7 +210,7 @@ export function CustomAxisBuilder({ onAdd, disabled }: Props) {
       )}
 
       <label className="block space-y-1">
-        <span className="text-xs font-medium text-zinc-700">What does &ldquo;good&rdquo; look like? (optional)</span>
+        <span className={labelClass}>What does &ldquo;good&rdquo; look like? (optional)</span>
         <textarea
           value={goodLooksLike}
           onChange={(e) => setGoodLooksLike(e.target.value)}
@@ -206,12 +218,15 @@ export function CustomAxisBuilder({ onAdd, disabled }: Props) {
           placeholder="Short, warm, no corporate jargon, speaks directly to the reader."
           className={inputClass}
         />
-        <span className="text-[11px] text-zinc-500">Sent to Jev alongside the question as extra context.</span>
+        <span className="block text-[11px] text-muted">Sent to Jev alongside the question as extra context.</span>
       </label>
 
-      {error && <p className="text-xs text-rose-700">{error}</p>}
+      {error && <p className="text-xs text-pink">{error}</p>}
 
-      <button type="submit" className="w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+      <button
+        type="submit"
+        className="w-full bg-ink px-3 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-bg transition hover:bg-pink hover:text-[#1e1e1e]"
+      >
         Save check
       </button>
     </form>

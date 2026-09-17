@@ -1,33 +1,32 @@
 export function ApiKeySetupGuide() {
   return (
-    <details className="group rounded-lg border border-zinc-200 bg-white text-sm">
-      <summary className="cursor-pointer select-none px-4 py-3 font-medium text-zinc-800 hover:bg-zinc-50">
-        How to connect a real API key
+    <details className="group border border-line text-sm">
+      <summary className="cursor-pointer select-none px-3 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-2 hover:text-ink">
+        Or set it in .env.local
       </summary>
-      <div className="space-y-3 border-t border-zinc-200 px-4 py-4 text-zinc-700">
+      <div className="space-y-3 border-t border-line px-3 py-3 text-ink-2">
         <ol className="list-decimal space-y-2 pl-5">
           <li>
             Get a TypeSafe API key at{" "}
-            <a href="https://typesafe.ai" target="_blank" rel="noreferrer" className="text-indigo-700 underline">
+            <a href="https://typesafe.ai" target="_blank" rel="noreferrer" className="text-pink underline decoration-pink/50 underline-offset-2 hover:decoration-pink">
               typesafe.ai
             </a>
             .
           </li>
           <li>
-            In the project folder, copy the example env file:
-            <pre className="mt-1 overflow-x-auto rounded bg-zinc-900 px-3 py-2 text-xs text-zinc-100">cp .env.local.example .env.local</pre>
+            Copy the example env file:
+            <pre className="mt-1 overflow-x-auto border border-line bg-bg px-3 py-2 font-mono text-xs text-ink">cp .env.local.example .env.local</pre>
           </li>
           <li>
-            Open <code className="rounded bg-zinc-100 px-1">.env.local</code> and paste your key:
-            <pre className="mt-1 overflow-x-auto rounded bg-zinc-900 px-3 py-2 text-xs text-zinc-100">TYPESAFE_API_KEY=your_key_here</pre>
+            Open <code className="font-mono text-ink">.env.local</code> and paste your key:
+            <pre className="mt-1 overflow-x-auto border border-line bg-bg px-3 py-2 font-mono text-xs text-ink">TYPESAFE_API_KEY=your_key_here</pre>
           </li>
           <li>
-            Restart the dev server (<code className="rounded bg-zinc-100 px-1">npm run dev</code>). This banner disappears when the key
-            is picked up.
+            Restart the dev server (<code className="font-mono text-ink">npm run dev</code>).
           </li>
         </ol>
-        <p className="text-xs text-zinc-500">
-          The key stays on the server. The browser only ever talks to this app&apos;s own <code>/api/judge</code> route.
+        <p className="font-mono text-[11px] text-muted">
+          The key stays on the server. The browser only talks to this app&apos;s own /api/judge route.
         </p>
       </div>
     </details>

@@ -1,14 +1,130 @@
 @import "tailwindcss";
 
-@theme inline {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+/*
+ * Design tokens. Dark is the default; [data-theme="light"] swaps the surfaces.
+ * Palette is TypeSafe's: ink #1e1e1e, paper #fefefe, pink #f386a1, magenta #d45bb6,
+ * teal #09aea1, green #03aa5c, grey-teal #abbab9.
+ */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121212;
+  --dot: #242424;
+  --panel: #191919;
+  --panel-2: #222222;
+  --ink: #fefefe;
+  --ink-2: #c4c4c4;
+  --muted: #8a8a8a;
+  --line: #333333;
+  --line-strong: #5a5a5a;
+  --pink: #f386a1;
+  --magenta: #d45bb6;
+  --teal: #09aea1;
+  --green: #03aa5c;
+  --greyteal: #abbab9;
 }
 
-:root {
+[data-theme="light"] {
   color-scheme: light;
+  --bg: #fefefe;
+  --dot: #e2e2e2;
+  --panel: #ffffff;
+  --panel-2: #f3f3f3;
+  --ink: #1e1e1e;
+  --ink-2: #3a3a3a;
+  --muted: #7a7a7a;
+  --line: #dedede;
+  --line-strong: #1e1e1e;
+  --pink: #d94a79;
+  --magenta: #b8409a;
+  --teal: #078c81;
+  --green: #03924f;
+  --greyteal: #62807e;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-pink: var(--pink);
+  --color-magenta: var(--magenta);
+  --color-teal: var(--teal);
+  --color-green: var(--green);
+  --color-greyteal: var(--greyteal);
+  --font-sans: var(--font-host), "Host Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jb), "JetBrains Mono", ui-monospace, monospace;
+}
+
+html {
+  background: var(--bg);
 }
 
 body {
+  color: var(--ink);
+  background-color: var(--bg);
+  /* Halftone dot field, a nod to TypeSafe's dithered surfaces. Kept faint. */
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.2px);
+  background-size: 8px 8px;
   font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--pink);
+  color: #1e1e1e;
+}
+
+:focus-visible {
+  outline: 2px solid var(--pink);
+  outline-offset: 2px;
+}
+
+input[type="range"] {
+  accent-color: var(--pink);
+}
+
+/* Inverted window title bar, like the retro OS windows on typesafe.ai */
+.titlebar {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+/* Corner brackets on a container: ⌜ ⌟ */
+.corners {
+  position: relative;
+}
+.corners::before,
+.corners::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: var(--line-strong);
+  border-style: solid;
+  pointer-events: none;
+}
+.corners::before {
+  top: -1px;
+  left: -1px;
+  border-width: 1px 0 0 1px;
+}
+.corners::after {
+  right: -1px;
+  bottom: -1px;
+  border-width: 0 1px 1px 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }

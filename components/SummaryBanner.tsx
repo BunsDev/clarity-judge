@@ -1,5 +1,4 @@
 import type { Summary } from "@/types/results";
-import { CheckIcon, FlagIcon, WarningIcon } from "./icons";
 
 type Props = { summary: Summary; demoMode: boolean };
 
@@ -7,45 +6,26 @@ export function SummaryBanner({ summary, demoMode }: Props) {
   const allClear = summary.issues === 0 && summary.flagged === 0 && summary.total > 0;
 
   return (
-    <div
-      className={`rounded-lg border p-4 ${
-        allClear ? "border-emerald-200 bg-emerald-50" : "border-zinc-200 bg-white"
-      }`}
-    >
-      <p className="text-sm font-medium leading-snug text-zinc-900">{summary.takeaway}</p>
-      <dl className="mt-3 flex flex-wrap gap-2 text-xs">
+    <div className={`border ${allClear ? "border-teal" : "border-line-strong"} bg-panel-2`}>
+      <p className="px-4 pt-4 pb-3 text-[15px] font-medium leading-snug text-ink">{summary.takeaway}</p>
+      <dl className="grid grid-cols-2 border-t border-line sm:grid-cols-4">
         <Stat label="checked" value={summary.total} />
-        <Stat label="passed" value={summary.passed} icon={<CheckIcon className="h-3.5 w-3.5" />} tone="good" />
-        <Stat label="issues found" value={summary.issues} icon={<WarningIcon className="h-3.5 w-3.5" />} tone={summary.issues > 0 ? "bad" : "neutral"} />
-        <Stat label="low confidence" value={summary.flagged} icon={<FlagIcon className="h-3.5 w-3.5" />} tone={summary.flagged > 0 ? "warn" : "neutral"} />
+        <Stat label="passed" value={summary.passed} tone={summary.passed > 0 ? "text-teal" : undefined} />
+        <Stat label="issues" value={summary.issues} tone={summary.issues > 0 ? "text-pink" : undefined} />
+        <Stat label="flagged" value={summary.flagged} tone={summary.flagged > 0 ? "text-magenta" : undefined} />
       </dl>
-      {demoMode && <p className="mt-2 text-[11px] text-zinc-500">Simulated results (demo mode).</p>}
+      {demoMode && (
+        <p className="border-t border-line px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">Simulated results · demo mode</p>
+      )}
     </div>
   );
 }
 
-function Stat({
-  label,
-  value,
-  icon,
-  tone = "neutral",
-}: {
-  label: string;
-  value: number;
-  icon?: React.ReactNode;
-  tone?: "neutral" | "good" | "bad" | "warn";
-}) {
-  const tones = {
-    neutral: "border-zinc-200 bg-zinc-50 text-zinc-700",
-    good: "border-emerald-200 bg-emerald-50 text-emerald-800",
-    bad: "border-rose-200 bg-rose-50 text-rose-800",
-    warn: "border-amber-200 bg-amber-50 text-amber-800",
-  };
+function Stat({ label, value, tone }: { label: string; value: number; tone?: string }) {
   return (
-    <div className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 ${tones[tone]}`}>
-      {icon}
-      <dd className="font-semibold">{value}</dd>
-      <dt>{label}</dt>
+    <div className="border-r border-line px-4 py-2.5 last:border-r-0 sm:[&:nth-child(2)]:border-r max-sm:[&:nth-child(2)]:border-r-0">
+      <dd className={`font-mono text-xl tabular-nums leading-none ${tone ?? "text-ink"}`}>{value}</dd>
+      <dt className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">{label}</dt>
     </div>
   );
 }

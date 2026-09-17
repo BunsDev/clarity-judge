@@ -25,6 +25,8 @@ import { AxisSelector } from "./AxisSelector";
 import { DemoModeBanner } from "./DemoModeBanner";
 import { ResultsPanel } from "./ResultsPanel";
 import { TextEditor } from "./TextEditor";
+import { ThemeToggle } from "./ThemeToggle";
+import { Window } from "./Window";
 import { SpinnerIcon } from "./icons";
 
 type Props = {
@@ -34,7 +36,7 @@ type Props = {
 
 /**
  * The whole app's state lives here. Child components are presentational and
- * receive callbacks. Flow: edit text → pick axes → Run Judgment → results.
+ * receive callbacks. Flow: 01 text → 02 checks → run → 03 results.
  */
 export function ClarityJudgeApp({ serverHasKey }: Props) {
   const [text, setText] = useState(SAMPLE_TEXT);
@@ -48,7 +50,7 @@ export function ClarityJudgeApp({ serverHasKey }: Props) {
   const [hydrated, setHydrated] = useState(false);
   const autoRan = useRef(false);
 
-  // Load saved custom axes + settings once the component is on screen.
+  // Load saved custom axes, settings and key once the component is on screen.
   // localStorage only exists in the browser, and the server-rendered HTML must
   // match the first client render, so this has to happen in an effect after
   // mount rather than in the initial state. That's exactly the case the lint
@@ -63,7 +65,6 @@ export function ClarityJudgeApp({ serverHasKey }: Props) {
     setHydrated(true);
   }, []);
 
-  // Persist changes after hydration.
   useEffect(() => {
     if (hydrated) saveCustomAxes(customAxes);
   }, [customAxes, hydrated]);
@@ -156,77 +157,129 @@ export function ClarityJudgeApp({ serverHasKey }: Props) {
     setResults((prev) => prev.filter((r) => r.axis.id !== id));
   }
 
+  const modeLabel = !hydrated ? "" : demoMode ? "Demo" : apiKey ? "Live · browser key" : "Live · server key";
+  const keyStatus = !hydrated ? "…" : apiKey ? "Browser" : serverHasKey ? "Server" : "None";
+
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <header className="mb-6">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Clarity Judge</h1>
+    <div className="flex min-h-screen flex-col">
+      {/* Top bar */}
+      <header className="sticky top-0 z-20 flex h-12 items-center justify-between border-b border-line bg-bg/90 px-4 backdrop-blur sm:px-6">
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-[15px] font-semibold tracking-tight text-ink">Clarity Judge</h1>
+          <span className="hidden font-mono text-[11px] uppercase tracking-[0.14em] text-muted sm:inline">Judged by TypeSafe Jev</span>
+        </div>
+        <div className="flex items-center gap-2">
           {hydrated && (
             <span
-              className={`rounded-full px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide ${
-                demoMode ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"
+              className={`border px-2 py-1 font-mono text-[11px] uppercase tracking-[0.14em] ${
+                demoMode ? "border-pink text-pink" : "border-teal text-teal"
               }`}
             >
-              {demoMode ? "Demo mode" : apiKey ? "Live · browser key" : "Live · server key"}
+              {modeLabel}
             </span>
           )}
+          <ThemeToggle />
         </div>
-        <p className="mt-1 max-w-2xl text-sm text-zinc-600">
-          Instead of one vague quality score, run your writing through separate, named checks. Each one gets its own
-          verdict and confidence from TypeSafe&apos;s Jev model, so you can see exactly what to fix.
-        </p>
       </header>
 
-      <div className="grid gap-8 md:grid-cols-2">
-        <div className="space-y-5">
-          {hydrated && demoMode && <DemoModeBanner />}
-          {hydrated && (
-            <ApiKeySettings
-              serverHasKey={serverHasKey}
-              hasBrowserKey={apiKey !== null}
-              onSave={handleSaveApiKey}
-              onClear={handleClearApiKey}
+      {/* Thesis strip */}
+      <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-line px-4 py-3 sm:px-6">
+        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-pink">Decisions, not scores</p>
+        <p className="max-w-3xl text-sm text-ink-2">
+          One vague &ldquo;is this good?&rdquo; is easy to game. Separate, named checks each get their own verdict and
+          confidence, so you see exactly what to fix.
+        </p>
+      </div>
+
+      {/* Workspace: 1 col → 2 cols (lg) → 3 cols (2xl) */}
+      <div className="grid flex-1 gap-4 p-4 sm:p-6 lg:grid-cols-2 2xl:grid-cols-12">
+        <div className="space-y-4 2xl:contents">
+          <div className="space-y-4 2xl:col-span-4">
+            {hydrated && demoMode && <DemoModeBanner />}
+            <Window title="01 · Text" meta={running ? "Locked" : "Editable"} bodyClassName="">
+              <TextEditor value={text} onChange={setText} onLoadSample={() => setText(SAMPLE_TEXT)} onRun={() => void run()} disabled={running} />
+            </Window>
+            {hydrated && (
+              <Window title="API key" meta={keyStatus}>
+                <ApiKeySettings
+                  serverHasKey={serverHasKey}
+                  hasBrowserKey={apiKey !== null}
+                  onSave={handleSaveApiKey}
+                  onClear={handleClearApiKey}
+                  disabled={running}
+                />
+              </Window>
+            )}
+          </div>
+
+          <div className="space-y-4 2xl:col-span-3">
+            <Window title="02 · Checks" meta={`${selectedAxes.length}/${allAxes.length} on`} bodyClassName="p-3">
+              <AxisSelector
+                builtInAxes={BUILT_IN_AXES}
+                customAxes={customAxes}
+                selectedIds={selectedIds}
+                onToggle={toggleAxis}
+                onSelectAll={selectAll}
+                onAddCustom={addCustomAxis}
+                onRemoveCustom={removeCustomAxis}
+                disabled={running}
+              />
+            </Window>
+            <button
+              type="button"
+              onClick={() => void run()}
               disabled={running}
-            />
-          )}
-
-          <TextEditor value={text} onChange={setText} onLoadSample={() => setText(SAMPLE_TEXT)} disabled={running} />
-
-          <AxisSelector
-            builtInAxes={BUILT_IN_AXES}
-            customAxes={customAxes}
-            selectedIds={selectedIds}
-            onToggle={toggleAxis}
-            onSelectAll={selectAll}
-            onAddCustom={addCustomAxis}
-            onRemoveCustom={removeCustomAxis}
-            disabled={running}
-          />
-
-          <button
-            type="button"
-            onClick={() => void run()}
-            disabled={running}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {running && <SpinnerIcon className="h-4 w-4" />}
-            {running ? "Judging…" : `Run Judgment (${selectedAxes.length} ${selectedAxes.length === 1 ? "check" : "checks"})`}
-          </button>
+              className="flex w-full items-center justify-between gap-2 bg-pink px-4 py-3 font-mono text-xs uppercase tracking-[0.16em] text-[#1e1e1e] transition hover:bg-magenta hover:text-[#fefefe] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <span className="flex items-center gap-2">
+                {running && <SpinnerIcon className="h-3.5 w-3.5" />}
+                {running ? "Judging" : `Run judgment · ${selectedAxes.length} ${selectedAxes.length === 1 ? "check" : "checks"}`}
+              </span>
+              <span className="opacity-60">⌘↵</span>
+            </button>
+          </div>
         </div>
 
-        <div className="md:sticky md:top-6 md:self-start">
-          <ResultsPanel
-            status={status}
-            results={results}
-            summary={summary}
-            error={error}
-            threshold={threshold}
-            onThresholdChange={setThreshold}
-            onRetry={() => void run()}
-            demoMode={demoMode}
-          />
+        <div className="lg:sticky lg:top-16 lg:self-start 2xl:col-span-5">
+          <Window
+            title="03 · Results"
+            meta={
+              <label className="flex items-center gap-2">
+                <span>Flag below</span>
+                <input
+                  type="range"
+                  min={50}
+                  max={95}
+                  step={5}
+                  value={Math.round(threshold * 100)}
+                  onChange={(event) => setThreshold(Number(event.target.value) / 100)}
+                  className="h-1 w-20"
+                  aria-label="Confidence threshold"
+                />
+                <span className="w-8 tabular-nums">{Math.round(threshold * 100)}%</span>
+              </label>
+            }
+            bodyClassName="p-3 lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto"
+          >
+            <ResultsPanel
+              status={status}
+              results={results}
+              summary={summary}
+              error={error}
+              threshold={threshold}
+              onRetry={() => void run()}
+              demoMode={demoMode}
+            />
+          </Window>
         </div>
       </div>
+
+      <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted sm:px-6">
+        <span>Clarity Judge · one request per run · every check answered in parallel</span>
+        <a href="https://docs.typesafe.ai" target="_blank" rel="noreferrer" className="hover:text-pink">
+          docs.typesafe.ai
+        </a>
+      </footer>
     </div>
   );
 }

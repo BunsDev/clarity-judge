@@ -29,30 +29,23 @@ export function AxisSelector({
   const allSelected = selectedIds.size === total && total > 0;
 
   return (
-    <section className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-zinc-800">
-          Checks to run <span className="font-normal text-zinc-500">({selectedIds.size} of {total})</span>
-        </h2>
-        <button
-          type="button"
-          onClick={() => onSelectAll(!allSelected)}
-          disabled={disabled}
-          className="text-xs font-medium text-indigo-700 hover:underline disabled:opacity-50"
-        >
+    <div className="space-y-2">
+      <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
+        <span>Built in</span>
+        <button type="button" onClick={() => onSelectAll(!allSelected)} disabled={disabled} className="text-ink-2 hover:text-pink disabled:opacity-50">
           {allSelected ? "Clear all" : "Select all"}
         </button>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {builtInAxes.map((axis) => (
           <AxisCard key={axis.id} axis={axis} selected={selectedIds.has(axis.id)} onToggle={onToggle} disabled={disabled} />
         ))}
       </div>
 
       {customAxes.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="pt-1 text-xs font-semibold uppercase tracking-wide text-zinc-500">Your custom checks</h3>
+        <div className="space-y-1.5 pt-2">
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">Yours</p>
           {customAxes.map((axis) => (
             <AxisCard
               key={axis.id}
@@ -66,7 +59,9 @@ export function AxisSelector({
         </div>
       )}
 
-      <CustomAxisBuilder onAdd={onAddCustom} disabled={disabled} />
-    </section>
+      <div className="pt-1">
+        <CustomAxisBuilder onAdd={onAddCustom} disabled={disabled} />
+      </div>
+    </div>
   );
 }

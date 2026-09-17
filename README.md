@@ -71,6 +71,8 @@ with the summary *"3 of 7 checks passed. Review hedging language, em dash usage,
 
 With a real key the verdicts are Jev's own and will differ — you'd expect it to be harsher on clarity and actionability for this paragraph than the demo is.
 
+The app is dark by default, following TypeSafe's ink-and-paper palette. **Light** in the top bar switches themes and remembers your choice. On wide screens the three steps sit side by side: text, checks, results. Press **⌘/Ctrl + Enter** inside the editor to run.
+
 Each card shows:
 
 - the **verdict** in plain words, with a ✓ / ⚠ / ? icon (the icon shape changes as well as the colour, so it works without colour vision)
@@ -109,6 +111,8 @@ components/
   DemoModeBanner.tsx     Yellow "no key" banner
   ApiKeySettings.tsx     Masked API-key field (never displays the key)
   ApiKeySetupGuide.tsx   Collapsible .env.local setup steps
+  Window.tsx             Bordered panel with an inverted mono title bar
+  ThemeToggle.tsx        Dark / light switch, persisted in localStorage
   icons.tsx              Tiny inline SVG icons
 lib/
   builtInAxes.ts         The 7 default checks, defined as data — add a new one here
