@@ -6,6 +6,7 @@ import type { JevErrorPayload } from "@/types/jev";
 import { JevApiError } from "@/types/jev";
 import type { AxisResult, JudgmentStatus } from "@/types/results";
 import { BUILT_IN_AXES } from "@/lib/builtInAxes";
+import type { DeployTarget } from "@/lib/env";
 import { runJudgment } from "@/lib/judge";
 import { buildSummary } from "@/lib/results";
 import { SAMPLE_TEXT } from "@/lib/sampleText";
@@ -32,13 +33,15 @@ import { SpinnerIcon } from "./icons";
 type Props = {
   /** Decided on the server from whether TYPESAFE_API_KEY is set. Never the key itself. */
   serverHasKey: boolean;
+  /** Where the app is running, so key-setup instructions match the environment. */
+  deployTarget: DeployTarget;
 };
 
 /**
  * The whole app's state lives here. Child components are presentational and
  * receive callbacks. Flow: 01 text → 02 checks → run → 03 results.
  */
-export function ClarityJudgeApp({ serverHasKey }: Props) {
+export function ClarityJudgeApp({ serverHasKey, deployTarget }: Props) {
   const [text, setText] = useState(SAMPLE_TEXT);
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [customAxes, setCustomAxes] = useState<Axis[]>([]);
@@ -203,6 +206,7 @@ export function ClarityJudgeApp({ serverHasKey }: Props) {
               <Window title="API key" meta={keyStatus}>
                 <ApiKeySettings
                   serverHasKey={serverHasKey}
+                  deployTarget={deployTarget}
                   hasBrowserKey={apiKey !== null}
                   onSave={handleSaveApiKey}
                   onClear={handleClearApiKey}

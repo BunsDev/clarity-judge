@@ -179,7 +179,7 @@ If a key does slip out somewhere (a screenshot, a pasted chat), rotate it at typ
 | Message | What it means |
 |---|---|
 | *You've hit the API rate limit, try again in a moment.* | TypeSafe returned HTTP 429. Wait a few seconds and press **Retry**. |
-| *TypeSafe rejected the API key.* | HTTP 401. Check the key you saved in the browser, or `.env.local` (then restart the dev server). |
+| *TypeSafe rejected the API key.* | HTTP 401. Check the key you saved in the browser, or the server's `TYPESAFE_API_KEY` (`.env.local` locally; an environment variable on Vercel or your host). |
 | *Your TypeSafe organization has no API credits.* | HTTP 402. The key is valid but the account has no balance. Add credits at console.typesafe.ai/settings/billing. |
 | *TypeSafe is overloaded right now.* | HTTP 529/503. Retry shortly. |
 | *Needs review* on a single card | Jev's answer for that check was missing or malformed. The rest of the run is fine. |
@@ -202,4 +202,4 @@ npm run check:secrets  # scan tracked files for anything that looks like a crede
 
 - **New built-in check:** add an object to `lib/builtInAxes.ts`. That's it — the UI, request building, and summary all read from that list.
 - **Use the official SDK instead of `fetch`:** TypeSafe ships `@typesafe-ai/sdk`. `lib/jevClient.ts` is the only file that would change.
-- **Deploy:** it's a standard Next.js app. On Vercel (or anywhere else), set the `TYPESAFE_API_KEY` environment variable and deploy.
+- **Deploy:** it's a standard Next.js app. On Vercel (or anywhere else), set the `TYPESAFE_API_KEY` environment variable and deploy. The in-app setup guide detects where it's running (local, Vercel, other host) and shows matching instructions. Think twice before setting a server key on a public URL: every visitor's run spends its credits. For a public demo, leave it unset and let visitors paste their own key in the browser.

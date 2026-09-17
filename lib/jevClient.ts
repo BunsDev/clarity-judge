@@ -140,7 +140,7 @@ export function describeHttpError(status: number, raw: string): JevApiError {
     case 401:
     case 403:
       return new JevApiError(
-        "TypeSafe rejected the API key. Check the key you saved in the browser, or TYPESAFE_API_KEY in .env.local.",
+        "TypeSafe rejected the API key. Check the key you saved in the browser, or the server's TYPESAFE_API_KEY.",
         "auth",
         status,
         raw,

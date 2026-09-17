@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import type { DeployTarget } from "@/lib/env";
 import { looksLikeTypeSafeKey } from "@/lib/redact";
 import { ApiKeySetupGuide } from "./ApiKeySetupGuide";
 import { CheckIcon } from "./icons";
 
 type Props = {
-  /** True when the server found TYPESAFE_API_KEY in .env.local. */
+  /** True when the server found TYPESAFE_API_KEY in its environment. */
   serverHasKey: boolean;
+  deployTarget: DeployTarget;
   /** True when a key is saved in this browser's localStorage. */
   hasBrowserKey: boolean;
   onSave: (key: string) => void;
@@ -24,7 +26,8 @@ type Props = {
  * - The key lives in localStorage and goes to this app's own /api/judge route
  *   in a request header. A browser key takes precedence over the server key.
  */
-export function ApiKeySettings({ serverHasKey, hasBrowserKey, onSave, onClear, disabled }: Props) {
+export function ApiKeySettings({ serverHasKey, deployTarget, hasBrowserKey, onSave, onClear, disabled }: Props) {
+  const serverKeyPlace = deployTarget === "local" ? ".env.local" : deployTarget === "vercel" ? "the Vercel environment" : "the server environment";
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [justSaved, setJustSaved] = useState(false);
@@ -61,8 +64,8 @@ export function ApiKeySettings({ serverHasKey, hasBrowserKey, onSave, onClear, d
       ) : (
         <p className="text-ink-2">
           {serverHasKey
-            ? "Using the key from .env.local. You can also save one in this browser; it will take precedence."
-            : "No key yet. Paste one here or set it in .env.local. Until then, results are simulated."}
+            ? `Using the key from ${serverKeyPlace}. You can also save one in this browser; it will take precedence.`
+            : `No key yet. Paste one here or set it in ${serverKeyPlace}. Until then, results are simulated.`}
         </p>
       )}
 
@@ -109,12 +112,12 @@ export function ApiKeySettings({ serverHasKey, hasBrowserKey, onSave, onClear, d
           {error && <p className="text-xs text-pink">{error}</p>}
           <p className="font-mono text-[11px] leading-relaxed text-muted">
             Stored only in this browser and sent to this app&apos;s own /api/judge route. Never displayed after saving.
-            Anyone using this browser profile could read it, so on shared machines prefer .env.local.
+            Anyone using this browser profile could read it, so on shared machines prefer a server-side key.
           </p>
         </form>
       </details>
 
-      {!serverHasKey && <ApiKeySetupGuide />}
+      {!serverHasKey && <ApiKeySetupGuide deployTarget={deployTarget} />}
     </div>
   );
 }

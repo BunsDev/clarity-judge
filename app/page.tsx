@@ -1,4 +1,5 @@
 import { ClarityJudgeApp } from "@/components/ClarityJudgeApp";
+import { getDeployTarget } from "@/lib/env";
 
 // Check for the API key on every request rather than once at build time, so
 // adding a key to a deployed app takes effect without a rebuild.
@@ -10,5 +11,5 @@ export const dynamic = "force-dynamic";
  */
 export default function HomePage() {
   const serverHasKey = Boolean(process.env.TYPESAFE_API_KEY?.trim());
-  return <ClarityJudgeApp serverHasKey={serverHasKey} />;
+  return <ClarityJudgeApp serverHasKey={serverHasKey} deployTarget={getDeployTarget()} />;
 }
