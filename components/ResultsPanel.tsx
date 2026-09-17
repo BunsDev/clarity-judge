@@ -22,13 +22,15 @@ type Props = {
   onRetry: () => void;
   onChangeKey: () => void;
   demoMode: boolean;
+  /** True when the results on screen came from the mock, whatever the mode is now. */
+  resultsSimulated: boolean;
   /** Increments per run so cards re-animate and disclosure defaults reset. */
   runId: number;
   exportData: unknown;
 };
 
 /** Right panel: the verdicts, one card per check, plus the threshold. */
-export function ResultsPanel({ status, results, summary, error, stale, threshold, onThresholdChange, onRetry, onChangeKey, demoMode, runId, exportData }: Props) {
+export function ResultsPanel({ status, results, summary, error, stale, threshold, onThresholdChange, onRetry, onChangeKey, demoMode, resultsSimulated, runId, exportData }: Props) {
   const explained = error ? explainError(error) : null;
 
   // Progressive disclosure: issues and flagged checks start open, passes closed.
@@ -119,7 +121,7 @@ export function ResultsPanel({ status, results, summary, error, stale, threshold
 
         {results.length > 0 && summary && (
           <div style={{ opacity: running ? 0.5 : 1, transition: "opacity 150ms" }}>
-            <SummaryMetrics summary={summary} demoMode={demoMode} />
+            <SummaryMetrics summary={summary} simulated={resultsSimulated} />
 
             <div className="results-toolbar">
               <span className="muted">

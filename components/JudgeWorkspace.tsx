@@ -35,6 +35,8 @@ export function JudgeWorkspace() {
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [runId, setRunId] = useState(0);
   const [snapshot, setSnapshot] = useState("");
+  // Whether the results on screen came from the mock, decided when they arrived.
+  const [resultsSimulated, setResultsSimulated] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const autoRan = useRef(false);
 
@@ -83,6 +85,7 @@ export function JudgeWorkspace() {
         jevEvidence: true,
       });
       setResults(next);
+      setResultsSimulated(telemetry.source === "simulated");
       setTelemetry(telemetry);
       setSnapshot(JSON.stringify([text, selectedAxes.map((a) => a.id), demoMode]));
       setRunId((id) => id + 1);
@@ -220,10 +223,11 @@ export function JudgeWorkspace() {
           onRetry={() => void run()}
           onChangeKey={openKeyDialog}
           demoMode={demoMode}
+          resultsSimulated={resultsSimulated}
           runId={runId}
           exportData={
             results.length
-              ? { text, threshold, mode: demoMode ? "simulated" : "jev", results: results.map(({ axis, ...rest }) => ({ check: axis.name, ...rest })) }
+              ? { text, threshold, mode: resultsSimulated ? "simulated" : "jev", results: results.map(({ axis, ...rest }) => ({ check: axis.name, ...rest })) }
               : null
           }
         />

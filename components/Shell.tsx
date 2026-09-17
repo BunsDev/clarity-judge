@@ -104,6 +104,14 @@ export function Shell({ serverHasKey, deployTarget, children }: Props) {
   const openKeyDialog = useCallback(() => setKeyDialogOpen(true), []);
 
   const demoMode = !serverHasKey && !apiKey;
+
+  // A readout from a simulated run must never sit under a "Live" label, or the
+  // other way round, so the last-run facts reset whenever the mode flips.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTelemetry(null);
+  }, [demoMode]);
+
   const shell = useMemo<ShellState>(
     () => ({ serverHasKey, deployTarget, apiKey, hydrated, demoMode, saveKey, clearKey, openKeyDialog, telemetry, setTelemetry, running, setRunning }),
     [serverHasKey, deployTarget, apiKey, hydrated, demoMode, saveKey, clearKey, openKeyDialog, telemetry, running],

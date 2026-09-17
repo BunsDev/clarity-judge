@@ -3,15 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import type { Summary } from "@/types/results";
 
-type Props = { summary: Summary; demoMode: boolean };
+type Props = { summary: Summary; simulated: boolean };
 
 /** The one-line takeaway and the four totals, in the playground's metrics grid. */
-export function SummaryMetrics({ summary, demoMode }: Props) {
+export function SummaryMetrics({ summary, simulated }: Props) {
   const allClear = summary.issues === 0 && summary.flagged === 0 && summary.total > 0;
   return (
     <div className={`verdict-summary${allClear ? " clear" : ""}`}>
       <h2>{summary.takeaway}</h2>
-      <p className="summary-note">{demoMode ? "Simulated results, deterministic for this text." : "Verdicts from Jev. Flags follow the threshold below."}</p>
+      <p className="summary-note">{simulated ? "Simulated results, deterministic for this text." : "Verdicts from Jev. Flags follow the threshold below."}</p>
       <dl className="summary-metrics">
         <Stat label="checked" value={summary.total} />
         <Stat label="passed" value={summary.passed} tone={summary.passed > 0 ? "pass" : undefined} />
