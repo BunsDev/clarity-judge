@@ -16,7 +16,7 @@ export const metadata: Metadata = {
  */
 const themeScript = `(function(){try{var t=localStorage.getItem("clarity-judge:theme");if(t==="light"||t==="dark"){document.documentElement.dataset.theme=t}}catch(e){}})();`;
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" data-theme="dark" suppressHydrationWarning className={`${host.variable} ${mono.variable} h-full`}>
       <head>
