@@ -7,8 +7,10 @@ import { JevApiError, type JevAnswer, type JevRequest } from "@/types/jev";
  * must be called from `app/api/judge/route.ts`, never from browser code.
  *
  * One request carries every question. Jev evaluates them all in parallel
- * against the same text, so a judgment run costs one round trip regardless of
- * how many axes are switched on.
+ * against the same text, so the verdict batch costs one round trip regardless
+ * of how many axes are switched on. `lib/judge.ts` may follow it with a second,
+ * optional request that picks evidence sentences; that usage is not counted in
+ * the telemetry returned here.
  *
  * Wire format (from https://docs.typesafe.ai/api):
  *   POST https://api.typesafe.ai/v1/systemone

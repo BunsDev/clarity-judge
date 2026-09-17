@@ -129,7 +129,7 @@ export function ResultsPanel({ status, results, summary, error, threshold, onThr
           <div className="border border-line bg-panel-2 p-3" role="status" aria-live="polite">
             <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.14em] text-ink-2">
               <span>Asking Jev</span>
-              <span className="text-muted">one request · all checks in parallel</span>
+              <span className="text-muted">all checks in one batched verdict request</span>
             </div>
             <div className="loader-blocks mt-2 h-3 w-full border border-line-strong" aria-hidden />
           </div>

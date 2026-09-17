@@ -4,7 +4,7 @@ type Props = { telemetry: Telemetry | null; running: boolean };
 
 /** Header readout of the last run: model, latency, tokens. Reads like an instrument. */
 export function StatusReadout({ telemetry, running }: Props) {
-  const cells: { label: string; value: string }[] = running
+  const cells: { label: string; value: string; title?: string }[] = running
     ? [
         { label: "model", value: telemetry?.model ?? "—" },
         { label: "latency", value: "…" },
@@ -14,7 +14,11 @@ export function StatusReadout({ telemetry, running }: Props) {
       ? [
           { label: "model", value: telemetry.model },
           { label: "latency", value: `${telemetry.latencyMs} ms` },
-          { label: "tokens", value: telemetry.inputTokens !== undefined ? telemetry.inputTokens.toLocaleString() : "—" },
+          {
+            label: "tokens",
+            value: telemetry.inputTokens !== undefined ? telemetry.inputTokens.toLocaleString() : "—",
+            title: telemetry.source === "jev" ? "Input tokens for the verdict request only. The optional evidence request is not counted." : "Estimated; demo mode sends nothing to Jev.",
+          },
         ]
       : [
           { label: "model", value: "—" },
@@ -25,7 +29,7 @@ export function StatusReadout({ telemetry, running }: Props) {
   return (
     <dl className="hidden items-center gap-4 font-mono text-[10px] uppercase tracking-[0.14em] md:flex" aria-label="Last run">
       {cells.map((cell) => (
-        <div key={cell.label} className="flex items-baseline gap-1.5">
+        <div key={cell.label} className="flex items-baseline gap-1.5" title={cell.title}>
           <dt className="text-muted">{cell.label}</dt>
           <dd className={`tabular-nums ${running ? "text-pink" : "text-ink-2"}`}>{cell.value}</dd>
         </div>

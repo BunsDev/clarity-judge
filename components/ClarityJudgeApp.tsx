@@ -343,7 +343,7 @@ export function ClarityJudgeApp({ serverHasKey, deployTarget }: Props) {
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} commands={commands} />
 
       <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted sm:px-6">
-        <span>Clarity Judge · one request per run · every check answered in parallel</span>
+        <span>Clarity Judge · all checks batched in one verdict request · live mode adds one optional evidence request</span>
         <a href="https://docs.typesafe.ai" target="_blank" rel="noreferrer" className="hover:text-pink">
           docs.typesafe.ai
         </a>
