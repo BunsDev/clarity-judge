@@ -67,6 +67,7 @@ export type JevAnswer = {
 export type JevErrorCode =
   | "rate_limited"
   | "auth"
+  | "billing"
   | "validation"
   | "overloaded"
   | "timeout"

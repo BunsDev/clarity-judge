@@ -9,8 +9,18 @@ import { BUILT_IN_AXES } from "@/lib/builtInAxes";
 import { runJudgment } from "@/lib/judge";
 import { buildSummary } from "@/lib/results";
 import { SAMPLE_TEXT } from "@/lib/sampleText";
-import { DEFAULT_SETTINGS, loadCustomAxes, loadSettings, saveCustomAxes, saveSettings } from "@/lib/storage";
-import { ApiKeySetupGuide } from "./ApiKeySetupGuide";
+import { redactSecrets } from "@/lib/redact";
+import {
+  DEFAULT_SETTINGS,
+  clearApiKey,
+  loadApiKey,
+  loadCustomAxes,
+  loadSettings,
+  saveApiKey,
+  saveCustomAxes,
+  saveSettings,
+} from "@/lib/storage";
+import { ApiKeySettings } from "./ApiKeySettings";
 import { AxisSelector } from "./AxisSelector";
 import { DemoModeBanner } from "./DemoModeBanner";
 import { ResultsPanel } from "./ResultsPanel";
@@ -18,16 +28,17 @@ import { TextEditor } from "./TextEditor";
 import { SpinnerIcon } from "./icons";
 
 type Props = {
-  /** Decided on the server from whether TYPESAFE_API_KEY is set. */
-  demoMode: boolean;
+  /** Decided on the server from whether TYPESAFE_API_KEY is set. Never the key itself. */
+  serverHasKey: boolean;
 };
 
 /**
  * The whole app's state lives here. Child components are presentational and
  * receive callbacks. Flow: edit text → pick axes → Run Judgment → results.
  */
-export function ClarityJudgeApp({ demoMode }: Props) {
+export function ClarityJudgeApp({ serverHasKey }: Props) {
   const [text, setText] = useState(SAMPLE_TEXT);
+  const [apiKey, setApiKey] = useState<string | null>(null);
   const [customAxes, setCustomAxes] = useState<Axis[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(DEFAULT_SETTINGS.selectedAxisIds));
   const [threshold, setThreshold] = useState(DEFAULT_SETTINGS.threshold);
@@ -45,6 +56,7 @@ export function ClarityJudgeApp({ demoMode }: Props) {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCustomAxes(loadCustomAxes());
+    setApiKey(loadApiKey());
     const settings = loadSettings();
     setThreshold(settings.threshold);
     setSelectedIds(new Set(settings.selectedAxisIds));
@@ -58,6 +70,9 @@ export function ClarityJudgeApp({ demoMode }: Props) {
   useEffect(() => {
     if (hydrated) saveSettings({ threshold, selectedAxisIds: [...selectedIds] });
   }, [threshold, selectedIds, hydrated]);
+
+  // Demo mode only when there's no key anywhere. A browser key beats the server key.
+  const demoMode = !serverHasKey && !apiKey;
 
   const allAxes = useMemo(() => [...BUILT_IN_AXES, ...customAxes], [customAxes]);
   const selectedAxes = useMemo(() => allAxes.filter((axis) => selectedIds.has(axis.id)), [allAxes, selectedIds]);
@@ -77,7 +92,7 @@ export function ClarityJudgeApp({ demoMode }: Props) {
     setStatus("running");
     setError(null);
     try {
-      const next = await runJudgment(text, selectedAxes, { demoMode, jevEvidence: true });
+      const next = await runJudgment(text, selectedAxes, { demoMode, apiKey: apiKey ?? undefined, jevEvidence: true });
       setResults(next);
       setStatus("done");
     } catch (caught) {
@@ -85,10 +100,11 @@ export function ClarityJudgeApp({ demoMode }: Props) {
         caught instanceof JevApiError
           ? { error: caught.message, code: caught.code, status: caught.status, raw: caught.raw }
           : { error: "Something went wrong.", code: "unknown", raw: caught instanceof Error ? caught.message : String(caught) };
-      setError(payload);
+      // Belt and braces: never let a key reach the screen via an error message.
+      setError({ ...payload, error: redactSecrets(payload.error) ?? payload.error, raw: redactSecrets(payload.raw) });
       setStatus("error");
     }
-  }, [text, selectedAxes, demoMode]);
+  }, [text, selectedAxes, demoMode, apiKey]);
 
   // In demo mode, run once automatically so the results UI is populated on first load.
   // In live mode we don't spend the user's API quota without a click.
@@ -120,6 +136,16 @@ export function ClarityJudgeApp({ demoMode }: Props) {
     setSelectedIds((prev) => new Set(prev).add(axis.id));
   }
 
+  function handleSaveApiKey(key: string) {
+    saveApiKey(key);
+    setApiKey(key);
+  }
+
+  function handleClearApiKey() {
+    clearApiKey();
+    setApiKey(null);
+  }
+
   function removeCustomAxis(id: string) {
     setCustomAxes((prev) => prev.filter((a) => a.id !== id));
     setSelectedIds((prev) => {
@@ -135,13 +161,15 @@ export function ClarityJudgeApp({ demoMode }: Props) {
       <header className="mb-6">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Clarity Judge</h1>
-          <span
-            className={`rounded-full px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide ${
-              demoMode ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"
-            }`}
-          >
-            {demoMode ? "Demo mode" : "Live · Jev"}
-          </span>
+          {hydrated && (
+            <span
+              className={`rounded-full px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide ${
+                demoMode ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"
+              }`}
+            >
+              {demoMode ? "Demo mode" : apiKey ? "Live · browser key" : "Live · server key"}
+            </span>
+          )}
         </div>
         <p className="mt-1 max-w-2xl text-sm text-zinc-600">
           Instead of one vague quality score, run your writing through separate, named checks. Each one gets its own
@@ -151,11 +179,15 @@ export function ClarityJudgeApp({ demoMode }: Props) {
 
       <div className="grid gap-8 md:grid-cols-2">
         <div className="space-y-5">
-          {demoMode && (
-            <div className="space-y-2">
-              <DemoModeBanner />
-              <ApiKeySetupGuide />
-            </div>
+          {hydrated && demoMode && <DemoModeBanner />}
+          {hydrated && (
+            <ApiKeySettings
+              serverHasKey={serverHasKey}
+              hasBrowserKey={apiKey !== null}
+              onSave={handleSaveApiKey}
+              onClear={handleClearApiKey}
+              disabled={running}
+            />
           )}
 
           <TextEditor value={text} onChange={setText} onLoadSample={() => setText(SAMPLE_TEXT)} disabled={running} />

@@ -5,10 +5,10 @@ import { ClarityJudgeApp } from "@/components/ClarityJudgeApp";
 export const dynamic = "force-dynamic";
 
 /**
- * Server component. It's the only place that looks at the API key, and it
- * only passes a boolean to the browser — never the key itself.
+ * Server component. It's the only place that looks at the server's API key,
+ * and it only passes a boolean to the browser — never the key itself.
  */
 export default function HomePage() {
-  const demoMode = !process.env.TYPESAFE_API_KEY?.trim();
-  return <ClarityJudgeApp demoMode={demoMode} />;
+  const serverHasKey = Boolean(process.env.TYPESAFE_API_KEY?.trim());
+  return <ClarityJudgeApp serverHasKey={serverHasKey} />;
 }

@@ -16,9 +16,14 @@ import { mockCallJev } from "./mockJevClient";
 
 export type RunOptions = {
   demoMode: boolean;
+  /** Key the user saved in the browser, if any. Sent as a header to our own route. */
+  apiKey?: string;
   /** Live mode only: ask Jev a second, batched question to pick evidence sentences. */
   jevEvidence?: boolean;
 };
+
+/** Must match API_KEY_HEADER in app/api/judge/route.ts. */
+const API_KEY_HEADER = "x-typesafe-api-key";
 
 /** One axis becomes exactly one Jev question. */
 export function axisToQuestion(axis: Axis): JevQuestion {
@@ -104,12 +109,12 @@ export function keywordLean(text: string, axis: Axis): number {
 }
 
 /** Post to our API route and return answers, or throw a JevApiError. */
-async function fetchLiveAnswers(request: JevRequest): Promise<JevAnswer[]> {
+async function fetchLiveAnswers(request: JevRequest, apiKey?: string): Promise<JevAnswer[]> {
   let response: Response;
   try {
     response = await fetch("/api/judge", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...(apiKey ? { [API_KEY_HEADER]: apiKey } : {}) },
       body: JSON.stringify(request),
     });
   } catch (error) {
@@ -138,7 +143,7 @@ async function fetchLiveAnswers(request: JevRequest): Promise<JevAnswer[]> {
  * question per axis whose options are the sentence numbers. Any failure falls
  * back to the local heuristic — evidence is a nice-to-have, not the verdict.
  */
-async function pickEvidenceWithJev(text: string, axes: Axis[]): Promise<Record<string, Evidence>> {
+async function pickEvidenceWithJev(text: string, axes: Axis[], apiKey?: string): Promise<Record<string, Evidence>> {
   const sentences = splitSentences(text);
   if (sentences.length < 2 || sentences.length > 100) return {};
 
@@ -159,7 +164,7 @@ async function pickEvidenceWithJev(text: string, axes: Axis[]): Promise<Record<s
   };
 
   try {
-    const answers = await fetchLiveAnswers(request);
+    const answers = await fetchLiveAnswers(request, apiKey);
     const picked: Record<string, Evidence> = {};
     for (const answer of answers) {
       if (answer.needsReview || typeof answer.value !== "string") continue;
@@ -181,10 +186,11 @@ export async function runJudgment(text: string, axes: Axis[], options: RunOption
     for (const axis of axes) lean[axis.id] = keywordLean(text, axis);
     answers = await mockCallJev(request, { lean });
   } else {
-    answers = await fetchLiveAnswers(request);
+    answers = await fetchLiveAnswers(request, options.apiKey);
   }
 
-  const jevEvidence = !options.demoMode && options.jevEvidence ? await pickEvidenceWithJev(text, axes) : {};
+  const jevEvidence =
+    !options.demoMode && options.jevEvidence ? await pickEvidenceWithJev(text, axes, options.apiKey) : {};
 
   return axes.map((axis) => {
     const answer = answers.find((a) => a.id === axis.id);

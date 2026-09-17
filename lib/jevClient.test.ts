@@ -71,6 +71,11 @@ describe("describeHttpError", () => {
     expect(error.message).toBe("You've hit the API rate limit, try again in a moment.");
     expect(error.raw).toBe("slow down");
   });
+  it("maps 402 to a billing message", () => {
+    const error = describeHttpError(402, '{"detail":{"error_type":"billing_error"}}');
+    expect(error.code).toBe("billing");
+    expect(error.message).toMatch(/no API credits/);
+  });
   it("maps 401 to an auth message", () => {
     expect(describeHttpError(401, "").code).toBe("auth");
   });

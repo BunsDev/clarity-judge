@@ -139,7 +139,19 @@ export function describeHttpError(status: number, raw: string): JevApiError {
       return new JevApiError("You've hit the API rate limit, try again in a moment.", "rate_limited", status, raw);
     case 401:
     case 403:
-      return new JevApiError("TypeSafe rejected the API key. Check TYPESAFE_API_KEY in .env.local.", "auth", status, raw);
+      return new JevApiError(
+        "TypeSafe rejected the API key. Check the key you saved in the browser, or TYPESAFE_API_KEY in .env.local.",
+        "auth",
+        status,
+        raw,
+      );
+    case 402:
+      return new JevApiError(
+        "Your TypeSafe organization has no API credits. Add credits at console.typesafe.ai/settings/billing, then retry.",
+        "billing",
+        status,
+        raw,
+      );
     case 400:
     case 422:
       return new JevApiError("TypeSafe rejected the request as invalid.", "validation", status, raw);
@@ -151,10 +163,17 @@ export function describeHttpError(status: number, raw: string): JevApiError {
   }
 }
 
-export async function callJev(request: JevRequest): Promise<JevAnswer[]> {
-  const apiKey = process.env.TYPESAFE_API_KEY?.trim();
+/**
+ * @param apiKey Defaults to TYPESAFE_API_KEY from the environment. The API
+ *   route passes a browser-supplied key here when the user saved one in the UI.
+ */
+export async function callJev(
+  request: JevRequest,
+  apiKey: string | undefined = process.env.TYPESAFE_API_KEY,
+): Promise<JevAnswer[]> {
+  apiKey = apiKey?.trim();
   if (!apiKey) {
-    throw new JevApiError("TYPESAFE_API_KEY is not set.", "auth");
+    throw new JevApiError("No TypeSafe API key available.", "auth");
   }
   if (request.questions.length === 0) return [];
 

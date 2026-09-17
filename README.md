@@ -43,7 +43,9 @@ Open http://localhost:3000. That's demo mode — you'll see a yellow banner and 
    # TYPESAFE_API_KEY=your_key_here
    ```
 
-3. Restart the dev server (`Ctrl+C`, then `npm run dev` again). The banner disappears and the badge in the header switches to **Live · Jev**.
+3. Restart the dev server (`Ctrl+C`, then `npm run dev` again). The banner disappears and the badge in the header switches to **Live · server key**.
+
+Prefer not to touch files? Paste the key into the **API key** panel in the app instead — see [API keys and keeping them secret](#api-keys-and-keeping-them-secret).
 
 The key is read on the server only. The browser talks to this app's own `/api/judge` route, never to TypeSafe directly.
 
@@ -105,7 +107,8 @@ components/
   AxisResultCard.tsx     Verdict, confidence bar, evidence, flag
   SummaryBanner.tsx      Totals and the one-line takeaway
   DemoModeBanner.tsx     Yellow "no key" banner
-  ApiKeySetupGuide.tsx   Collapsible setup steps
+  ApiKeySettings.tsx     Masked API-key field (never displays the key)
+  ApiKeySetupGuide.tsx   Collapsible .env.local setup steps
   icons.tsx              Tiny inline SVG icons
 lib/
   builtInAxes.ts         The 7 default checks, defined as data — add a new one here
@@ -114,7 +117,11 @@ lib/
   judge.ts               Glue: axes → questions → answers → results
   evidenceHeuristic.ts   Picks the most relevant sentence when Jev can't tell us
   results.ts             Summary maths, flagging, confidence bands
-  storage.ts             localStorage helpers
+  storage.ts             localStorage helpers (custom axes, settings, browser key)
+  redact.ts              Masks key-shaped strings in error output
+scripts/
+  check-secrets.mjs      Secret scanner (pre-commit + CI)
+  pre-commit             Git hook installed by `npm install`
   sampleText.ts          The pre-loaded paragraph
 types/
   axis.ts, jev.ts, results.ts
@@ -146,12 +153,30 @@ types/
 
 For "pick one" questions Jev returns a confidence value directly. For Yes/No questions it returns only the probability of "yes", so the app derives confidence as **how far that probability is from a coin flip**: `max(p, 1 - p)`. A probability of 0.92 is 92% confident; 0.5 is 50% (genuinely unsure, always flagged at the default threshold).
 
+## API keys and keeping them secret
+
+There are two ways to give the app a key. Either way, the key is only ever sent to this app's own `/api/judge` route, which forwards it to TypeSafe.
+
+1. **`.env.local` (recommended on your own machine).** Copy `.env.local.example`, paste the key, restart the dev server. The file is gitignored. The server reads it; the browser only learns a true/false "a key exists".
+2. **In the browser.** Open the **API key** panel at the top of the page and paste the key into the password field. It's dots while you type, it's never displayed again after saving, and there's no "show" button — so it's safe to have the app open on a shared screen. It persists in that browser's localStorage and is sent as a request header. A browser key overrides the server key. Anyone using the same browser profile could read localStorage, so on a shared computer prefer option 1. **Remove key from this browser** wipes it.
+
+### Guard rails against leaking a key
+
+- **Pre-commit hook.** `npm install` installs `scripts/pre-commit` into `.git/hooks`. It runs `scripts/check-secrets.mjs --staged`, which blocks the commit if any *added* line looks like a credential (TypeSafe `apikey_…`, OpenAI/GitHub/AWS/Slack tokens, private-key blocks, or `TYPESAFE_API_KEY=` with a real value) or if any `.env*` file other than `.env.local.example` is staged. Findings are printed masked, never in full.
+- **CI.** `.github/workflows/ci.yml` runs the same scanner over every tracked file, then lint, typecheck, tests, and build, on every push and pull request.
+- **Manual scan.** `npm run check:secrets` at any time.
+- **Redaction.** Error messages shown in the UI pass through `lib/redact.ts`, which masks anything key-shaped, so even a misbehaving upstream error can't put the key on screen. Nothing on the server logs the key.
+- **`.gitignore`** already covers `.env*`, with an explicit exception for `.env.local.example`.
+
+If a key does slip out somewhere (a screenshot, a pasted chat), rotate it at typesafe.ai and update `.env.local`.
+
 ## Errors you might see
 
 | Message | What it means |
 |---|---|
 | *You've hit the API rate limit, try again in a moment.* | TypeSafe returned HTTP 429. Wait a few seconds and press **Retry**. |
-| *TypeSafe rejected the API key.* | HTTP 401. Check `.env.local` and restart the dev server. |
+| *TypeSafe rejected the API key.* | HTTP 401. Check the key you saved in the browser, or `.env.local` (then restart the dev server). |
+| *Your TypeSafe organization has no API credits.* | HTTP 402. The key is valid but the account has no balance. Add credits at console.typesafe.ai/settings/billing. |
 | *TypeSafe is overloaded right now.* | HTTP 529/503. Retry shortly. |
 | *Needs review* on a single card | Jev's answer for that check was missing or malformed. The rest of the run is fine. |
 
@@ -166,6 +191,7 @@ npm start          # serve the production build
 npm test           # unit tests (vitest) for the lib/ helpers and the API route
 npm run lint       # eslint
 npm run typecheck  # tsc --noEmit
+npm run check:secrets  # scan tracked files for anything that looks like a credential
 ```
 
 ## Extending it

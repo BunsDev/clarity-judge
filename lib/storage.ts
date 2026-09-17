@@ -11,6 +11,7 @@ import { DEFAULT_THRESHOLD } from "./results";
 
 const CUSTOM_AXES_KEY = "clarity-judge:custom-axes";
 const SETTINGS_KEY = "clarity-judge:settings";
+const API_KEY_KEY = "clarity-judge:api-key";
 
 export const DEFAULT_SETTINGS: Settings = {
   threshold: DEFAULT_THRESHOLD,
@@ -59,4 +60,26 @@ export function loadSettings(): Settings {
 
 export function saveSettings(settings: Settings): void {
   writeJson(SETTINGS_KEY, settings);
+}
+
+/**
+ * The user's own TypeSafe key, if they saved one in the UI. Kept in
+ * localStorage so it persists across reloads; never rendered by any component.
+ */
+export function loadApiKey(): string | null {
+  const key = readJson<string>(API_KEY_KEY);
+  return typeof key === "string" && key.trim() ? key.trim() : null;
+}
+
+export function saveApiKey(key: string): void {
+  writeJson(API_KEY_KEY, key.trim());
+}
+
+export function clearApiKey(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(API_KEY_KEY);
+  } catch {
+    // ignore
+  }
 }
