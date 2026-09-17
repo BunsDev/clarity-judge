@@ -56,7 +56,7 @@ export function ApiKeySettings({ serverHasKey, deployTarget, hasBrowserKey, onSa
               setJustSaved(false);
             }}
             disabled={disabled}
-            className="font-mono text-[11px] uppercase tracking-[0.14em] text-pink hover:underline disabled:opacity-50"
+            className="press font-mono text-[11px] uppercase tracking-[0.14em] text-pink hover:underline disabled:opacity-50"
           >
             Remove from this browser
           </button>
@@ -99,12 +99,12 @@ export function ApiKeySettings({ serverHasKey, deployTarget, hasBrowserKey, onSa
               spellCheck={false}
               placeholder="apikey_…"
               aria-label="TypeSafe API key"
-              className="min-w-0 flex-1 border border-line bg-bg px-2.5 py-1.5 font-mono text-sm text-ink outline-none transition focus:border-ink disabled:opacity-50"
+              className="min-w-0 flex-1 border border-line bg-bg px-2.5 py-1.5 font-mono text-sm text-ink outline-none transition-[border-color] duration-150 focus:border-ink disabled:opacity-50"
             />
             <button
               type="submit"
               disabled={disabled || draft.trim().length === 0}
-              className="bg-ink px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-bg transition hover:bg-pink hover:text-[#1e1e1e] disabled:opacity-40"
+              className="press bg-ink px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-bg hover:bg-pink hover:text-[#1e1e1e] disabled:opacity-40"
             >
               Save
             </button>

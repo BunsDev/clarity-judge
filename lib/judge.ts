@@ -169,7 +169,7 @@ async function pickEvidenceWithJev(text: string, axes: Axis[], apiKey?: string):
     for (const answer of answers) {
       if (answer.needsReview || typeof answer.value !== "string") continue;
       const index = ids.indexOf(answer.value);
-      if (index >= 0) picked[answer.id] = { snippet: sentences[index], approximate: false };
+      if (index >= 0) picked[answer.id] = { snippet: sentences[index], index, total: sentences.length, approximate: false };
     }
     return picked;
   } catch {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { MoonIcon, SunIcon } from "./icons";
 
 const STORAGE_KEY = "clarity-judge:theme";
 type Theme = "dark" | "light";
@@ -25,7 +26,12 @@ export function ThemeToggle() {
 
   function toggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";
-    document.documentElement.dataset.theme = next;
+    const root = document.documentElement;
+    // Snap, don't smear: kill transitions for the frame in which every colour changes.
+    root.classList.add("no-transitions");
+    root.dataset.theme = next;
+    void root.offsetHeight; // force reflow so the class applies before the swap paints
+    requestAnimationFrame(() => root.classList.remove("no-transitions"));
     try {
       localStorage.setItem(STORAGE_KEY, next);
     } catch {
@@ -33,14 +39,20 @@ export function ThemeToggle() {
     }
   }
 
+  const iconBase = "absolute inset-0 m-auto h-3.5 w-3.5 transition-[opacity,scale,filter] duration-200 [transition-timing-function:cubic-bezier(0.2,0,0,1)]";
+  const shown = "opacity-100 scale-100 blur-0";
+  const hidden = "opacity-0 scale-25 blur-[4px]";
+
   return (
     <button
       type="button"
       onClick={toggle}
       aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-      className="border border-line px-2 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-2 transition hover:border-ink hover:text-ink"
+      title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+      className="press relative h-7 w-7 border border-line text-ink-2 hover:border-ink hover:text-ink"
     >
-      {theme === "dark" ? "Light" : "Dark"}
+      <SunIcon className={`${iconBase} ${theme === "dark" ? shown : hidden}`} />
+      <MoonIcon className={`${iconBase} ${theme === "light" ? shown : hidden}`} />
     </button>
   );
 }

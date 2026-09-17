@@ -6,7 +6,7 @@ export function SummaryBanner({ summary, demoMode }: Props) {
   const allClear = summary.issues === 0 && summary.flagged === 0 && summary.total > 0;
 
   return (
-    <div className={`border ${allClear ? "border-teal" : "border-line-strong"} bg-panel-2`}>
+    <div className={`window border ${allClear ? "border-teal" : "border-line-strong"} bg-panel-2`}>
       <p className="px-4 pt-4 pb-3 text-[15px] font-medium leading-snug text-ink">{summary.takeaway}</p>
       <dl className="grid grid-cols-2 border-t border-line sm:grid-cols-4">
         <Stat label="checked" value={summary.total} />
@@ -15,7 +15,9 @@ export function SummaryBanner({ summary, demoMode }: Props) {
         <Stat label="flagged" value={summary.flagged} tone={summary.flagged > 0 ? "text-magenta" : undefined} />
       </dl>
       {demoMode && (
-        <p className="border-t border-line px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">Simulated results · demo mode</p>
+        <p className="border-t border-line px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
+          <span className="chip mr-2">Demo</span>Simulated results
+        </p>
       )}
     </div>
   );

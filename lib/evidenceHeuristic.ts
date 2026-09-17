@@ -84,5 +84,5 @@ export function pickEvidence(text: string, axis: Axis): Evidence | null {
     }
   });
 
-  return { snippet: sentences[bestIndex], approximate: true };
+  return { snippet: sentences[bestIndex], index: bestIndex, total: sentences.length, approximate: true };
 }

@@ -22,6 +22,7 @@
   --teal: #09aea1;
   --green: #03aa5c;
   --greyteal: #abbab9;
+  --shadow: #2c2c2c;
 }
 
 [data-theme="light"] {
@@ -40,6 +41,7 @@
   --teal: #078c81;
   --green: #03924f;
   --greyteal: #62807e;
+  --shadow: #1e1e1e;
 }
 
 @theme inline {
@@ -56,6 +58,7 @@
   --color-teal: var(--teal);
   --color-green: var(--green);
   --color-greyteal: var(--greyteal);
+  --color-shadow: var(--shadow);
   --font-sans: var(--font-host), "Host Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jb), "JetBrains Mono", ui-monospace, monospace;
 }
@@ -95,6 +98,66 @@ input[type="range"] {
   color: var(--bg);
 }
 
+/* Hard offset shadow: retro OS window depth, no blur. */
+.window {
+  box-shadow: 3px 3px 0 0 var(--shadow);
+}
+
+/* Inverted mono chip label, like "String Tax" / "Jev.Confidence" on typesafe.ai */
+.chip {
+  display: inline-block;
+  padding: 1px 6px;
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Press feedback for buttons. Always 0.96. */
+.press {
+  transition-property: scale, background-color, color, border-color, opacity;
+  transition-duration: 120ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+.press:active:not(:disabled) {
+  scale: 0.96;
+}
+
+/* Indeterminate block loader: a moving band of segments. */
+@keyframes blocks-slide {
+  from { background-position: 0 0; }
+  to { background-position: 48px 0; }
+}
+.loader-blocks {
+  background-image: repeating-linear-gradient(90deg, var(--ink) 0 5px, transparent 5px 6px, transparent 6px 24px, var(--muted) 24px 29px, transparent 29px 30px, transparent 30px 48px);
+  background-size: 48px 100%;
+  animation: blocks-slide 700ms linear infinite;
+}
+
+/* Staggered entrance for freshly judged result cards. Runs once per run. */
+@keyframes rise-in {
+  from { opacity: 0; translate: 0 6px; }
+  to { opacity: 1; translate: 0 0; }
+}
+.rise-in {
+  animation: rise-in 260ms cubic-bezier(0.2, 0, 0, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+/* Applied for one frame while the theme flips so colours snap instead of smearing. */
+.no-transitions *,
+.no-transitions *::before,
+.no-transitions *::after {
+  transition: none !important;
+}
+
+/* Hatched band for the "uncertain zone" on probability strips. */
+.hatch {
+  background-image: repeating-linear-gradient(135deg, var(--line-strong) 0 1px, transparent 1px 5px);
+}
+
 /* Corner brackets on a container: ⌜ ⌟ */
 .corners {
   position: relative;
@@ -126,5 +189,8 @@ input[type="range"] {
   *::after {
     transition: none !important;
     animation: none !important;
+  }
+  .loader-blocks {
+    background-image: repeating-linear-gradient(90deg, var(--muted) 0 5px, transparent 5px 6px);
   }
 }

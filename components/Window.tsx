@@ -11,11 +11,11 @@ type Props = {
   bodyClassName?: string;
 };
 
-/** A bordered panel with an inverted mono title bar, like a retro OS window. */
+/** A bordered panel with an inverted mono title bar and a hard offset shadow, like a retro OS window. */
 export function Window({ title, meta, children, className = "", bodyClassName = "p-4" }: Props) {
   return (
-    <section className={`border border-line bg-panel ${className}`}>
-      <header className="titlebar flex items-center justify-between gap-3 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.14em]">
+    <section className={`window border border-line bg-panel ${className}`}>
+      <header className="titlebar flex h-7 items-center justify-between gap-3 px-3 font-mono text-[11px] uppercase tracking-[0.14em]">
         <span className="truncate">{title}</span>
         {meta !== undefined && <span className="shrink-0 truncate">{meta}</span>}
       </header>

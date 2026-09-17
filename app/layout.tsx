@@ -11,10 +11,11 @@ export const metadata: Metadata = {
 };
 
 /**
- * Applies the saved theme before first paint so there's no flash. Dark is the
- * default; the toggle in the header writes "light" or "dark" to localStorage.
+ * Applies the theme before first paint so there's no flash: the saved choice if
+ * there is one, otherwise the system preference, otherwise dark. The toggle in
+ * the header writes "light" or "dark" to localStorage.
  */
-const themeScript = `(function(){try{var t=localStorage.getItem("clarity-judge:theme");if(t==="light"||t==="dark"){document.documentElement.dataset.theme=t}}catch(e){}})();`;
+const themeScript = `(function(){try{var t=localStorage.getItem("clarity-judge:theme");if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark"}document.documentElement.dataset.theme=t}catch(e){}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -4,6 +4,10 @@ import type { JevAnswer } from "./jev";
 export type Evidence = {
   /** The sentence (or phrase) most relevant to this axis. */
   snippet: string;
+  /** 0-based position of the sentence in the text. */
+  index: number;
+  /** How many sentences the text was split into. */
+  total: number;
   /**
    * True when the snippet was picked by our local keyword heuristic rather
    * than by Jev. The UI labels these "approximate".

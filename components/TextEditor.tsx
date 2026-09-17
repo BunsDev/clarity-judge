@@ -1,5 +1,7 @@
 "use client";
 
+import { splitSentences } from "@/lib/evidenceHeuristic";
+
 type Props = {
   value: string;
   onChange: (value: string) => void;
@@ -11,6 +13,7 @@ type Props = {
 
 export function TextEditor({ value, onChange, onLoadSample, onRun, disabled }: Props) {
   const words = value.trim() ? value.trim().split(/\s+/).length : 0;
+  const sentences = splitSentences(value).length;
 
   return (
     <div className="flex h-full flex-col">
@@ -32,9 +35,9 @@ export function TextEditor({ value, onChange, onLoadSample, onRun, disabled }: P
       />
       <div className="flex items-center justify-between border-t border-line px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
         <span>
-          {words} {words === 1 ? "word" : "words"} · {value.length.toLocaleString()} chars
+          {words} {words === 1 ? "word" : "words"} · {sentences} {sentences === 1 ? "sentence" : "sentences"} · {value.length.toLocaleString()} chars
         </span>
-        <button type="button" onClick={onLoadSample} disabled={disabled} className="text-ink-2 hover:text-pink disabled:opacity-50">
+        <button type="button" onClick={onLoadSample} disabled={disabled} className="press text-ink-2 hover:text-pink disabled:opacity-50">
           Load sample
         </button>
       </div>

@@ -35,7 +35,7 @@ describe("pickEvidence", () => {
 
   it("falls back to the first sentence when nothing matches, and is labelled approximate", () => {
     const result = pickEvidence("Alpha beta. Gamma delta.", { ...axis("clarity"), evidenceHint: undefined, question: "zzz" });
-    expect(result).toEqual({ snippet: "Alpha beta.", approximate: true });
+    expect(result).toEqual({ snippet: "Alpha beta.", index: 0, total: 2, approximate: true });
   });
 
   it("ignores an invalid regex in a custom axis instead of throwing", () => {

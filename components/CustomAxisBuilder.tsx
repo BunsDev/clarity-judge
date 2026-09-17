@@ -21,7 +21,7 @@ function slugify(label: string): string {
 }
 
 const inputClass =
-  "w-full border border-line bg-bg px-2.5 py-1.5 text-sm text-ink outline-none transition placeholder:text-muted focus:border-ink";
+  "w-full border border-line bg-bg px-2.5 py-1.5 text-sm text-ink outline-none transition-[border-color] duration-150 placeholder:text-muted focus:border-ink";
 const labelClass = "font-mono text-[10px] uppercase tracking-[0.14em] text-muted";
 
 function Segment({ active, tone = "ink", children, ...rest }: { active: boolean; tone?: "ink" | "teal" | "pink"; children: React.ReactNode } & React.LabelHTMLAttributes<HTMLLabelElement>) {
@@ -29,7 +29,7 @@ function Segment({ active, tone = "ink", children, ...rest }: { active: boolean;
   return (
     <label
       {...rest}
-      className={`flex-1 cursor-pointer border px-3 py-1.5 text-center font-mono text-[11px] uppercase tracking-[0.12em] transition ${
+      className={`press flex-1 cursor-pointer border px-3 py-1.5 text-center font-mono text-[11px] uppercase tracking-[0.12em] ${
         active ? activeClass : "border-line text-ink-2 hover:border-line-strong"
       }`}
     >
@@ -101,7 +101,7 @@ export function CustomAxisBuilder({ onAdd, disabled }: Props) {
         type="button"
         onClick={() => setOpen(true)}
         disabled={disabled}
-        className="w-full border border-dashed border-line-strong px-3 py-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-2 transition hover:border-pink hover:text-pink disabled:opacity-50"
+        className="press w-full border border-dashed border-line-strong px-3 py-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-2 hover:border-pink hover:text-pink disabled:opacity-50"
       >
         + Add a custom check
       </button>
@@ -189,7 +189,7 @@ export function CustomAxisBuilder({ onAdd, disabled }: Props) {
                   return (
                     <label
                       key={value}
-                      className={`cursor-pointer border px-2 py-1 font-mono text-[11px] transition ${
+                      className={`press cursor-pointer border px-2 py-1 font-mono text-[11px] ${
                         checked ? "border-pink bg-pink/15 text-pink" : "border-line text-ink-2 hover:border-line-strong"
                       }`}
                     >
@@ -225,7 +225,7 @@ export function CustomAxisBuilder({ onAdd, disabled }: Props) {
 
       <button
         type="submit"
-        className="w-full bg-ink px-3 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-bg transition hover:bg-pink hover:text-[#1e1e1e]"
+        className="press w-full bg-ink px-3 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-bg hover:bg-pink hover:text-[#1e1e1e]"
       >
         Save check
       </button>

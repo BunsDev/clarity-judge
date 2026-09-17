@@ -28,7 +28,6 @@ import { ResultsPanel } from "./ResultsPanel";
 import { TextEditor } from "./TextEditor";
 import { ThemeToggle } from "./ThemeToggle";
 import { Window } from "./Window";
-import { SpinnerIcon } from "./icons";
 
 type Props = {
   /** Decided on the server from whether TYPESAFE_API_KEY is set. Never the key itself. */
@@ -51,6 +50,7 @@ export function ClarityJudgeApp({ serverHasKey, deployTarget }: Props) {
   const [results, setResults] = useState<AxisResult[]>([]);
   const [error, setError] = useState<JevErrorPayload | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [runId, setRunId] = useState(0);
   const autoRan = useRef(false);
 
   // Load saved custom axes, settings and key once the component is on screen.
@@ -98,6 +98,7 @@ export function ClarityJudgeApp({ serverHasKey, deployTarget }: Props) {
     try {
       const next = await runJudgment(text, selectedAxes, { demoMode, apiKey: apiKey ?? undefined, jevEvidence: true });
       setResults(next);
+      setRunId((id) => id + 1);
       setStatus("done");
     } catch (caught) {
       const payload: JevErrorPayload =
@@ -167,27 +168,29 @@ export function ClarityJudgeApp({ serverHasKey, deployTarget }: Props) {
     <div className="flex min-h-screen flex-col">
       {/* Top bar */}
       <header className="sticky top-0 z-20 flex h-12 items-center justify-between border-b border-line bg-bg/90 px-4 backdrop-blur sm:px-6">
-        <div className="flex items-baseline gap-3">
+        <div className="flex items-center gap-3">
+          <span className="flex h-3.5 w-3.5 items-center justify-center border border-ink" aria-hidden>
+            <span className="h-1.5 w-1.5 bg-pink" />
+          </span>
           <h1 className="text-[15px] font-semibold tracking-tight text-ink">Clarity Judge</h1>
           <span className="hidden font-mono text-[11px] uppercase tracking-[0.14em] text-muted sm:inline">Judged by TypeSafe Jev</span>
         </div>
         <div className="flex items-center gap-2">
-          {hydrated && (
-            <span
-              className={`border px-2 py-1 font-mono text-[11px] uppercase tracking-[0.14em] ${
-                demoMode ? "border-pink text-pink" : "border-teal text-teal"
-              }`}
-            >
-              {modeLabel}
-            </span>
-          )}
+          {/* Reserve the badge's space before hydration so the header doesn't shift. */}
+          <span
+            className={`flex h-7 items-center border px-2 font-mono text-[11px] uppercase tracking-[0.14em] ${
+              !hydrated ? "invisible border-line" : demoMode ? "border-pink text-pink" : "border-teal text-teal"
+            }`}
+          >
+            {modeLabel || "…"}
+          </span>
           <ThemeToggle />
         </div>
       </header>
 
       {/* Thesis strip */}
       <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-line px-4 py-3 sm:px-6">
-        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-pink">Decisions, not scores</p>
+        <span className="chip !bg-pink !text-[#1e1e1e]">Decisions, not scores</span>
         <p className="max-w-3xl text-sm text-ink-2">
           One vague &ldquo;is this good?&rdquo; is easy to game. Separate, named checks each get their own verdict and
           confidence, so you see exactly what to fix.
@@ -233,12 +236,9 @@ export function ClarityJudgeApp({ serverHasKey, deployTarget }: Props) {
               type="button"
               onClick={() => void run()}
               disabled={running}
-              className="flex w-full items-center justify-between gap-2 bg-pink px-4 py-3 font-mono text-xs uppercase tracking-[0.16em] text-[#1e1e1e] transition hover:bg-magenta hover:text-[#fefefe] disabled:cursor-not-allowed disabled:opacity-60"
+              className="press window flex w-full items-center justify-between gap-2 border border-pink bg-pink px-4 py-3 font-mono text-xs uppercase tracking-[0.16em] text-[#1e1e1e] hover:bg-magenta hover:text-[#fefefe] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <span className="flex items-center gap-2">
-                {running && <SpinnerIcon className="h-3.5 w-3.5" />}
-                {running ? "Judging" : `Run judgment · ${selectedAxes.length} ${selectedAxes.length === 1 ? "check" : "checks"}`}
-              </span>
+              <span>{running ? "Judging…" : `Run judgment · ${selectedAxes.length} ${selectedAxes.length === 1 ? "check" : "checks"}`}</span>
               <span className="opacity-60">⌘↵</span>
             </button>
           </div>
@@ -247,23 +247,8 @@ export function ClarityJudgeApp({ serverHasKey, deployTarget }: Props) {
         <div className="lg:sticky lg:top-16 lg:self-start 2xl:col-span-5">
           <Window
             title="03 · Results"
-            meta={
-              <label className="flex items-center gap-2">
-                <span>Flag below</span>
-                <input
-                  type="range"
-                  min={50}
-                  max={95}
-                  step={5}
-                  value={Math.round(threshold * 100)}
-                  onChange={(event) => setThreshold(Number(event.target.value) / 100)}
-                  className="h-1 w-20"
-                  aria-label="Confidence threshold"
-                />
-                <span className="w-8 tabular-nums">{Math.round(threshold * 100)}%</span>
-              </label>
-            }
-            bodyClassName="p-3 lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto"
+            meta={summary ? `${summary.passed}/${summary.total} passed` : status === "running" ? "Working" : "Waiting"}
+            bodyClassName="lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto"
           >
             <ResultsPanel
               status={status}
@@ -271,8 +256,10 @@ export function ClarityJudgeApp({ serverHasKey, deployTarget }: Props) {
               summary={summary}
               error={error}
               threshold={threshold}
+              onThresholdChange={setThreshold}
               onRetry={() => void run()}
               demoMode={demoMode}
+              runId={runId}
             />
           </Window>
         </div>

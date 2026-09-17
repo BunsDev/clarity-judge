@@ -15,7 +15,7 @@ type Props = {
 export function AxisCard({ axis, selected, onToggle, onRemove, disabled }: Props) {
   return (
     <div
-      className={`group flex items-start gap-3 border px-3 py-2.5 transition ${
+      className={`group flex items-start gap-3 border px-3 py-2.5 transition-[border-color,background-color] duration-150 ${
         selected ? "border-line-strong bg-panel-2" : "border-line bg-panel hover:border-line-strong"
       }`}
     >
@@ -26,7 +26,7 @@ export function AxisCard({ axis, selected, onToggle, onRemove, disabled }: Props
         aria-label={`${selected ? "Disable" : "Enable"} ${axis.name}`}
         onClick={() => onToggle(axis.id)}
         disabled={disabled}
-        className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center border transition ${
+        className={`press mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center border ${
           selected ? "border-ink bg-ink text-bg" : "border-line-strong bg-transparent text-transparent"
         } disabled:opacity-50`}
       >
@@ -50,7 +50,7 @@ export function AxisCard({ axis, selected, onToggle, onRemove, disabled }: Props
           onClick={() => onRemove(axis.id)}
           disabled={disabled}
           aria-label={`Remove ${axis.name}`}
-          className="shrink-0 font-mono text-[10px] uppercase tracking-[0.14em] text-muted hover:text-pink disabled:opacity-50"
+          className="press shrink-0 font-mono text-[10px] uppercase tracking-[0.14em] text-muted hover:text-pink disabled:opacity-50"
         >
           Remove
         </button>

@@ -32,7 +32,7 @@ export function AxisSelector({
     <div className="space-y-2">
       <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
         <span>Built in</span>
-        <button type="button" onClick={() => onSelectAll(!allSelected)} disabled={disabled} className="text-ink-2 hover:text-pink disabled:opacity-50">
+        <button type="button" onClick={() => onSelectAll(!allSelected)} disabled={disabled} className="press text-ink-2 hover:text-pink disabled:opacity-50">
           {allSelected ? "Clear all" : "Select all"}
         </button>
       </div>
