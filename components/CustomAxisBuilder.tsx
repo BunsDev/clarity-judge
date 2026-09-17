@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { Check } from "lucide-react";
 import type { Axis } from "@/types/axis";
 
-type Props = {
-  onAdd: (axis: Axis) => void;
-  disabled?: boolean;
-};
+type Props = { onAdd: (axis: Axis) => void };
 
 type Kind = "yes_no" | "choice";
 
@@ -20,26 +18,16 @@ function slugify(label: string): string {
   return label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "option";
 }
 
-const inputClass =
-  "w-full border border-line bg-bg px-2.5 py-1.5 text-sm text-ink outline-none transition-[border-color] duration-150 placeholder:text-muted focus:border-ink";
-const labelClass = "font-mono text-[10px] uppercase tracking-[0.14em] text-muted";
-
-function Segment({ active, tone = "ink", children, ...rest }: { active: boolean; tone?: "ink" | "teal" | "pink"; children: React.ReactNode } & React.LabelHTMLAttributes<HTMLLabelElement>) {
-  const activeClass = { ink: "border-ink bg-ink text-bg", teal: "border-teal bg-teal/15 text-teal", pink: "border-pink bg-pink/15 text-pink" }[tone];
+function Segment({ active, children, ...rest }: { active: boolean; children: React.ReactNode } & React.LabelHTMLAttributes<HTMLLabelElement>) {
   return (
-    <label
-      {...rest}
-      className={`press flex-1 cursor-pointer border px-3 py-1.5 text-center font-mono text-[11px] uppercase tracking-[0.12em] ${
-        active ? activeClass : "border-line text-ink-2 hover:border-line-strong"
-      }`}
-    >
+    <label {...rest} className={`chip${active ? " selected" : ""}`}>
+      <Check size={13} strokeWidth={2.25} aria-hidden />
       {children}
     </label>
   );
 }
 
-export function CustomAxisBuilder({ onAdd, disabled }: Props) {
-  const [open, setOpen] = useState(false);
+export function CustomAxisBuilder({ onAdd }: Props) {
   const [name, setName] = useState("");
   const [kind, setKind] = useState<Kind>("yes_no");
   const [question, setQuestion] = useState("");
@@ -65,7 +53,8 @@ export function CustomAxisBuilder({ onAdd, disabled }: Props) {
     setError(null);
   }
 
-  function submit() {
+  function submit(event: React.FormEvent) {
+    event.preventDefault();
     if (!name.trim()) return setError("Give the check a name.");
     if (!question.trim()) return setError("Write the question Jev should answer.");
     if (kind === "choice" && parsedOptions.length < 2) return setError("Add at least two options, one per line.");
@@ -79,7 +68,6 @@ export function CustomAxisBuilder({ onAdd, disabled }: Props) {
       builtIn: false,
       evidenceHint: { keywords: [] },
     };
-
     const axis: Axis =
       kind === "yes_no"
         ? { ...base, kind: "yes_no", issueWhen: yesIsIssue }
@@ -89,146 +77,115 @@ export function CustomAxisBuilder({ onAdd, disabled }: Props) {
             options: parsedOptions.map((label) => ({ value: slugify(label), label })),
             issueOptions: issueOptions.filter((value) => parsedOptions.some((label) => slugify(label) === value)),
           };
-
     onAdd(axis);
     reset();
-    setOpen(false);
-  }
-
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        disabled={disabled}
-        className="press w-full border border-dashed border-line-strong px-3 py-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-2 hover:border-pink hover:text-pink disabled:opacity-50"
-      >
-        + Add a custom check
-      </button>
-    );
   }
 
   return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault();
-        submit();
-      }}
-      className="space-y-3 border border-line-strong bg-panel-2 p-3"
-    >
-      <div className="flex items-center justify-between">
-        <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink">New custom check</h3>
-        <button
-          type="button"
-          onClick={() => {
-            reset();
-            setOpen(false);
-          }}
-          className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted hover:text-ink"
-        >
-          Cancel
-        </button>
-      </div>
-
-      <label className="block space-y-1">
-        <span className={labelClass}>Name</span>
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Is this on-brand?" className={inputClass} />
+    <form onSubmit={submit}>
+      <label>
+        Name
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Is this on-brand?" maxLength={80} />
       </label>
 
-      <fieldset className="space-y-1">
-        <legend className={labelClass}>Answer type</legend>
-        <div className="flex gap-1.5">
-          {(["yes_no", "choice"] as Kind[]).map((value) => (
-            <Segment key={value} active={kind === value}>
-              <input type="radio" name="kind" value={value} checked={kind === value} onChange={() => setKind(value)} className="sr-only" />
-              {value === "yes_no" ? "Yes / No" : "Pick one"}
-            </Segment>
-          ))}
-        </div>
-      </fieldset>
+      <div className="field-label" style={{ marginTop: 14 }}>
+        Answer type
+      </div>
+      <div className="field-options segmented">
+        {(["yes_no", "choice"] as Kind[]).map((value) => (
+          <Segment key={value} active={kind === value}>
+            <input type="radio" name="kind" value={value} checked={kind === value} onChange={() => setKind(value)} />
+            {value === "yes_no" ? "Yes / No" : "Pick one"}
+          </Segment>
+        ))}
+      </div>
 
-      <label className="block space-y-1">
-        <span className={labelClass}>Question to ask</span>
+      <label style={{ marginTop: 14 }}>
+        Question to ask
         <textarea
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           rows={2}
+          maxLength={500}
           placeholder={kind === "yes_no" ? "Does this text sound like our brand voice?" : "Which audience is this text written for?"}
-          className={inputClass}
         />
-        {kind === "yes_no" && <span className="block text-[11px] text-muted">Phrase it so that &ldquo;yes&rdquo; has one clear meaning.</span>}
       </label>
+      {kind === "yes_no" && <span className="field-hint">Phrase it so that &ldquo;yes&rdquo; has one clear meaning.</span>}
 
       {kind === "yes_no" ? (
-        <fieldset className="space-y-1">
-          <legend className={labelClass}>A &ldquo;yes&rdquo; answer means</legend>
-          <div className="flex gap-1.5">
-            <Segment active={!yesIsIssue} tone="teal">
-              <input type="radio" name="yesMeans" checked={!yesIsIssue} onChange={() => setYesIsIssue(false)} className="sr-only" />
+        <>
+          <div className="field-label" style={{ marginTop: 14 }}>
+            A &ldquo;yes&rdquo; answer means
+          </div>
+          <div className="field-options segmented">
+            <Segment active={!yesIsIssue}>
+              <input type="radio" name="yesMeans" checked={!yesIsIssue} onChange={() => setYesIsIssue(false)} />
               The text passes
             </Segment>
-            <Segment active={yesIsIssue} tone="pink">
-              <input type="radio" name="yesMeans" checked={yesIsIssue} onChange={() => setYesIsIssue(true)} className="sr-only" />
+            <Segment active={yesIsIssue}>
+              <input type="radio" name="yesMeans" checked={yesIsIssue} onChange={() => setYesIsIssue(true)} />
               There&apos;s a problem
             </Segment>
           </div>
-        </fieldset>
+        </>
       ) : (
         <>
-          <label className="block space-y-1">
-            <span className={labelClass}>Options (one per line)</span>
-            <textarea value={optionsText} onChange={(e) => setOptionsText(e.target.value)} rows={3} placeholder={"Engineers\nExecutives\nGeneral public"} className={inputClass} />
+          <label style={{ marginTop: 14 }}>
+            Options (one per line)
+            <textarea value={optionsText} onChange={(e) => setOptionsText(e.target.value)} rows={3} placeholder={"Engineers\nExecutives\nGeneral public"} />
           </label>
           {parsedOptions.length > 0 && (
-            <fieldset className="space-y-1">
-              <legend className={labelClass}>Which options count as a problem? (optional)</legend>
-              <div className="flex flex-wrap gap-1.5">
+            <>
+              <div className="field-label" style={{ marginTop: 14 }}>
+                Which options count as a problem? <span className="muted">(optional)</span>
+              </div>
+              <div className="field-options">
                 {parsedOptions.map((label) => {
                   const value = slugify(label);
                   const checked = issueOptions.includes(value);
                   return (
-                    <label
-                      key={value}
-                      className={`press cursor-pointer border px-2 py-1 font-mono text-[11px] ${
-                        checked ? "border-pink bg-pink/15 text-pink" : "border-line text-ink-2 hover:border-line-strong"
-                      }`}
-                    >
+                    <Segment key={value} active={checked}>
                       <input
                         type="checkbox"
                         checked={checked}
                         onChange={() => setIssueOptions((prev) => (checked ? prev.filter((v) => v !== value) : [...prev, value]))}
-                        className="sr-only"
                       />
                       {label}
-                    </label>
+                    </Segment>
                   );
                 })}
               </div>
-            </fieldset>
+            </>
           )}
         </>
       )}
 
-      <label className="block space-y-1">
-        <span className={labelClass}>What does &ldquo;good&rdquo; look like? (optional)</span>
+      <label style={{ marginTop: 14 }}>
+        What does &ldquo;good&rdquo; look like? <span className="muted">(optional)</span>
         <textarea
           value={goodLooksLike}
           onChange={(e) => setGoodLooksLike(e.target.value)}
           rows={2}
+          maxLength={500}
           placeholder="Short, warm, no corporate jargon, speaks directly to the reader."
-          className={inputClass}
         />
-        <span className="block text-[11px] text-muted">Sent to Jev alongside the question as extra context.</span>
       </label>
+      <span className="field-hint">Sent to Jev alongside the question as extra context. Custom checks are saved in this browser.</span>
 
-      {error && <p className="text-xs text-pink">{error}</p>}
+      {error && (
+        <p className="field-hint" role="alert" style={{ color: "var(--error)" }}>
+          {error}
+        </p>
+      )}
 
-      <button
-        type="submit"
-        className="press w-full bg-ink px-3 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-bg hover:bg-pink hover:text-[#1e1e1e]"
-      >
-        Save check
-      </button>
+      <div className="dialog-actions">
+        <button type="submit" className="button primary">
+          Save check
+        </button>
+        <button type="button" className="button quiet" onClick={reset}>
+          Reset
+        </button>
+      </div>
     </form>
   );
 }

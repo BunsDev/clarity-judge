@@ -13,6 +13,18 @@ const CUSTOM_AXES_KEY = "clarity-judge:custom-axes";
 const SETTINGS_KEY = "clarity-judge:settings";
 const API_KEY_KEY = "clarity-judge:api-key";
 
+/** Fired on window whenever the browser key is saved or removed, so every component can resync. */
+export const API_KEY_EVENT = "clarity-judge:api-key-change";
+
+function announceKeyChange(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.dispatchEvent(new Event(API_KEY_EVENT));
+  } catch {
+    // ignore
+  }
+}
+
 export const DEFAULT_SETTINGS: Settings = {
   threshold: DEFAULT_THRESHOLD,
   selectedAxisIds: [...BUILT_IN_AXIS_IDS],
@@ -73,6 +85,7 @@ export function loadApiKey(): string | null {
 
 export function saveApiKey(key: string): void {
   writeJson(API_KEY_KEY, key.trim());
+  announceKeyChange();
 }
 
 export function clearApiKey(): void {
@@ -82,4 +95,5 @@ export function clearApiKey(): void {
   } catch {
     // ignore
   }
+  announceKeyChange();
 }

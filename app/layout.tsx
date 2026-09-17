@@ -1,30 +1,35 @@
 import type { Metadata } from "next";
-import { Host_Grotesk, JetBrains_Mono } from "next/font/google";
+import { Shell } from "@/components/Shell";
+import { getDeployTarget } from "@/lib/env";
 import "./globals.css";
 
-const host = Host_Grotesk({ variable: "--font-host", subsets: ["latin"] });
-const mono = JetBrains_Mono({ variable: "--font-jb", subsets: ["latin"], weight: ["400", "500"] });
-
 export const metadata: Metadata = {
-  title: "Clarity Judge",
+  title: { default: "Clarity Judge", template: "%s · Clarity Judge" },
   description: "Multi-axis writing quality checker powered by TypeSafe's Jev model.",
 };
 
+// The shell needs to know whether a server key exists on every request, not
+// once at build time, so adding a key to a deployment takes effect immediately.
+export const dynamic = "force-dynamic";
+
 /**
  * Applies the theme before first paint so there's no flash: the saved choice if
- * there is one, otherwise the system preference, otherwise dark. The toggle in
- * the header writes "light" or "dark" to localStorage.
+ * there is one, otherwise the system preference.
  */
-const themeScript = `(function(){try{var t=localStorage.getItem("clarity-judge:theme");if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark"}document.documentElement.dataset.theme=t}catch(e){}})();`;
+const themeScript = `try{var t=localStorage.getItem("clarity-judge:theme");if(t!=="light"&&t!=="dark"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}document.documentElement.dataset.theme=t}catch(e){}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // The only place the server key is looked at, and only as a boolean.
+  const serverHasKey = Boolean(process.env.TYPESAFE_API_KEY?.trim());
   return (
-    <html lang="en" data-theme="dark" suppressHydrationWarning className={`${host.variable} ${mono.variable} h-full`}>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-full">
-        <main>{children}</main>
+      <body>
+        <Shell serverHasKey={serverHasKey} deployTarget={getDeployTarget()}>
+          {children}
+        </Shell>
       </body>
     </html>
   );

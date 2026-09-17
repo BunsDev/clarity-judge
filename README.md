@@ -50,7 +50,7 @@ These are editable writing preferences, not universal rules: a hedge may accurat
 
 Results show a plain-language verdict, confidence, a relevant sentence, and an uncertainty flag. The default flagging threshold is 70%; moving it re-evaluates flags locally without a new model call. Problematic and uncertain cards expand first; **Expand all** exposes the rest. The summary counts outcomes from the individual checks rather than providing an independent model-generated grade.
 
-Use `⌘K` / `Ctrl+K` for the command palette, change light/dark themes in the header, and open check details to inspect the question being sent. Narrow screens stack the workflow and provide a bottom Run control.
+The interface follows the TypeSafe playground at [jev.works](https://jev.works): a sidebar with the judge and two reference pages (**Checks**, which lists every built-in question, and **How it works**), a topbar with the last run's latency and token readout, the API key dialog, and the theme switch. Use `⌘K` / `Ctrl+K` for the command palette and `⌘↵` / `Ctrl+Enter` to run. Narrow screens stack the two panels and move the sidebar behind a menu button.
 
 ## Add a custom check
 
@@ -104,8 +104,11 @@ The UI provides actionable error messages and an expandable upstream response. T
 
 | Path | Responsibility |
 | --- | --- |
-| `components/ClarityJudgeApp.tsx` | Client state and the judgment workflow. |
-| `components/AxisSelector.tsx`, `components/CustomAxisBuilder.tsx` | Built-in and custom check selection. |
+| `components/Shell.tsx`, `components/ShellContext.tsx` | Sidebar, topbar, demo banner, theme, and the key state shared with every page. |
+| `components/JudgeWorkspace.tsx` | Client state and the judgment workflow. |
+| `components/SourcePanel.tsx`, `components/CheckChips.tsx`, `components/CustomAxisBuilder.tsx` | Text input, built-in and custom check selection. |
+| `components/ApiKeyDialog.tsx` | The only place a key is typed; masked, never displayed again. |
+| `app/checks/page.tsx`, `app/how-it-works/page.tsx` | Reference pages generated from the check definitions. |
 | `components/ResultsPanel.tsx`, `components/AxisResultCard.tsx` | Result, evidence, and uncertainty presentation. |
 | `lib/builtInAxes.ts` | Named built-in checks. |
 | `lib/judge.ts` | Browser orchestration, answer mapping, and optional evidence selection. |

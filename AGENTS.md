@@ -17,7 +17,7 @@ Use pnpm with the exact `packageManager` version in package.json and install wit
 - `lib/evidenceHeuristic.ts` and `lib/results.ts`: evidence and summary calculations.
 - `lib/storage.ts`, `lib/redact.ts`, `lib/errors.ts`: persistence and error handling.
 - `app/api/judge/route.ts`: server boundary and key handling.
-- `components/ClarityJudgeApp.tsx`: UI state; other components render/edit checks and results.
+- `components/Shell.tsx`: sidebar, topbar, key dialog, and the shared shell state; `components/JudgeWorkspace.tsx`: judgment state; other components render/edit checks and results.
 - `types/`: shared contracts; `scripts/`: secret scans and Git hooks.
 
 ## Behavioral invariants
