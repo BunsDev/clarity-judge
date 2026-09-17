@@ -18,6 +18,7 @@ pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm test:e2e
 ```
 
 Use mocked transports for automated tests. For UI work, inspect demo/live labeling, custom checks, threshold changes, key removal, error states, keyboard controls, themes, and narrow layouts. Review the diff for sensitive text even when the scanner passes.

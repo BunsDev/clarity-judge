@@ -44,6 +44,7 @@ pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm test:e2e
 ```
 
 Automated tests should use mocks, not shared TypeSafe credits. Cover answer mapping, issue polarity, malformed answers, threshold boundaries, evidence fallback, provider errors, redaction, and persistence when relevant. For UI changes, inspect custom checks, both modes, keyboard interaction, themes, narrow screens, and key lifecycle.

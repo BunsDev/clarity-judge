@@ -139,6 +139,7 @@ pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm test:e2e   # browser suite against the build you just made
 ```
 
 `pnpm start` serves a production build. Automated tests should use mocks rather than consume real API credits. For interface changes, also check both modes, custom-check persistence, result thresholds, key removal, error states, keyboard controls, themes, and narrow screens.
