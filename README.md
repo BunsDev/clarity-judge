@@ -130,6 +130,7 @@ The UI provides actionable error messages and an expandable upstream response. T
 | `lib/results.ts`, `lib/storage.ts`, `lib/redact.ts`, `lib/errors.ts` | Summaries, storage, redaction, and error presentation. |
 | `types/` | Check, provider, and result contracts. |
 | `scripts/` | Secret scanner and Git-hook installation. |
+| `e2e/` | Playwright suite: judge flows, key lifecycle, keyboard paths, and the axe-core accessibility gate. |
 
 ## Development checks
 
