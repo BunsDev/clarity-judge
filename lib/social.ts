@@ -5,7 +5,17 @@ import type { Metadata } from "next";
  * generated social preview images in lib/social-image.tsx.
  */
 
-export const SITE_URL = "https://clarity-judge.vercel.app";
+/**
+ * The canonical origin. Every canonical link, Open Graph URL, and preview
+ * image URL is built from this, so it must name the domain the app should be
+ * indexed under, not whichever host happens to serve a given request. The
+ * Vercel URL is an alias of this one. Override with SITE_URL to point a fork
+ * or a staging deploy at its own domain; no trailing slash is kept.
+ */
+export const SITE_URL = (process.env.SITE_URL || "https://judge.jev.works").replace(/\/+$/, "");
+
+/** SITE_URL without the scheme, for display in the generated preview images. */
+export const SITE_HOST = SITE_URL.replace(/^https?:\/\//, "");
 
 export const SOCIAL_PAGES = {
   home: {

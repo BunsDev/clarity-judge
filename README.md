@@ -132,6 +132,12 @@ The UI provides actionable error messages and an expandable upstream response. T
 | `scripts/` | Secret scanner and Git-hook installation. |
 | `e2e/` | Playwright suite: judge flows, key lifecycle, keyboard paths, and the axe-core accessibility gate. |
 
+## Canonical URL
+
+The app is served at **[judge.jev.works](https://judge.jev.works)**; the `clarity-judge.vercel.app` address is an alias of it. Canonical links, Open Graph URLs, and the generated preview images all name the branded domain, whichever host answered the request, so shared links and search results point at one address.
+
+That origin is `SITE_URL` in `lib/social.ts`. Set a `SITE_URL` environment variable to point a fork or a staging deploy at its own domain.
+
 ## Development checks
 
 ```sh

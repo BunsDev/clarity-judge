@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { BrandMark } from "@/components/BrandMark";
-import { SOCIAL_PAGES, type SocialPage } from "./social";
+import { SITE_HOST, SOCIAL_PAGES, type SocialPage } from "./social";
 
 /**
  * Generated social preview images. The card mirrors the app: a light
@@ -145,7 +145,7 @@ export function socialImage(key: SocialPage) {
       {/* Footer */}
       <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${LINE}`, paddingTop: 18, fontSize: 15, color: MUTED }}>
         <div>Small model. Clear choices. Nothing rewritten.</div>
-        <div>{p.path === "/" ? "clarity-judge.vercel.app" : `clarity-judge.vercel.app${p.path}`}</div>
+        <div>{p.path === "/" ? SITE_HOST : `${SITE_HOST}${p.path}`}</div>
       </div>
     </div>,
     {

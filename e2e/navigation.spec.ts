@@ -54,8 +54,14 @@ test.describe("shell navigation", () => {
   test("social metadata and icons are served", async ({ page, request }) => {
     await page.goto("/checks");
     await expect(page).toHaveTitle(/Seven questions, not one score\. · Clarity Judge/);
+
+    // Canonical and social URLs name the branded domain, never the host that
+    // happened to serve the request.
+    const canonical = await page.locator('link[rel="canonical"]').getAttribute("href");
+    expect(canonical).toBe("https://judge.jev.works/checks");
     const og = await page.locator('meta[property="og:image"]').getAttribute("content");
-    expect(og).toContain("/checks/opengraph-image");
+    expect(og).toBe("https://judge.jev.works/checks/opengraph-image");
+    expect(await page.locator('meta[property="og:url"]').getAttribute("content")).toBe("https://judge.jev.works/checks");
     for (const path of ["/opengraph-image", "/checks/opengraph-image", "/how-it-works/opengraph-image", "/icon.svg", "/apple-icon"]) {
       const res = await request.get(path);
       expect(res.status(), path).toBe(200);
