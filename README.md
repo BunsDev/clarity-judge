@@ -169,6 +169,6 @@ pnpm test:e2e   # browser suite against the build you just made
 
 ## Related community projects
 
-[TypeSafe AI Playground](https://github.com/TypeSafeAI/typesafe-ai-playground) explores Jev experiments; [Jev Tool & Model Router](https://github.com/BunsDev/typesafe-router) separates route selection from execution; [TypeSafe UI](https://github.com/TypeSafeAI/typesafe-ui) provides reusable interface components. These are separate repositories, not an automatically integrated product suite.
+[TypeSafe AI Playground](https://github.com/TypeSafeAI/typesafe-playground) explores Jev experiments; [Jev Tool & Model Router](https://github.com/BunsDev/typesafe-router) separates route selection from execution; [TypeSafe UI](https://github.com/TypeSafeAI/typesafe-ui) provides reusable interface components. These are separate repositories, not an automatically integrated product suite.
 
 The proposed GitHub About description and discovery topics are recorded in [repository-metadata.json](repository-metadata.json). That file does not update GitHub settings automatically.
