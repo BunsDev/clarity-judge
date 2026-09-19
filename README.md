@@ -136,7 +136,9 @@ The UI provides actionable error messages and an expandable upstream response. T
 
 The app is served at **[judge.jev.works](https://judge.jev.works)**; the `clarity-judge.vercel.app` address is an alias of it. Canonical links, Open Graph URLs, and the generated preview images all name the branded domain, whichever host answered the request, so shared links and search results point at one address.
 
-That origin is `SITE_URL` in `lib/social.ts`. Set a `SITE_URL` environment variable to point a fork or a staging deploy at its own domain.
+The Vercel aliases redirect there permanently, keeping path and query, so the two addresses never compete. Per-deployment URLs and branch previews are deliberately left alone, since they have to keep serving their own build until it is promoted.
+
+That origin is `SITE_URL` in `lib/social.ts`, and `next.config.ts` builds the redirects from the same value. Set a `SITE_URL` environment variable to point a fork or a staging deploy at its own domain.
 
 ## Development checks
 

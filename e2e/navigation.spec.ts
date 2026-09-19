@@ -68,4 +68,20 @@ test.describe("shell navigation", () => {
       expect(res.headers()["content-type"], path).toMatch(/image\//);
     }
   });
+
+  test("alias hosts redirect permanently to the canonical domain", async ({ request }) => {
+    for (const host of ["clarity-judge.vercel.app", "clarity-judge-0xbuns.vercel.app", "clarity-judge-git-main-0xbuns.vercel.app"]) {
+      const res = await request.get("/checks?ref=x", { headers: { host }, maxRedirects: 0 });
+      expect(res.status(), host).toBe(308);
+      expect(res.headers()["location"], host).toBe("https://judge.jev.works/checks?ref=x");
+    }
+  });
+
+  test("per-deployment and branch preview hosts are never redirected", async ({ request }) => {
+    // These must keep serving their own build so a deploy can be checked before promotion.
+    for (const host of ["clarity-judge-abc123xyz-0xbuns.vercel.app", "clarity-judge-git-feature-0xbuns.vercel.app", "judge.jev.works"]) {
+      const res = await request.get("/checks", { headers: { host }, maxRedirects: 0 });
+      expect(res.status(), host).toBe(200);
+    }
+  });
 });
