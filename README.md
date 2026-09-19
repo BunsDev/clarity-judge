@@ -2,7 +2,7 @@
 
 Evaluate writing against **separate, named checks** with TypeSafe AI's Jev: hedging, em dash overuse, clarity, filler phrases, tone, passive voice, and actionability. Inspect each verdict, confidence signal, and supporting sentence rather than relying on one opaque overall score.
 
-This is an **independent community project** under `BunsDev`, not an official TypeSafe product. It evaluates supplied writing; it does not generate a rewrite or establish that a passage is factually correct.
+This is an **independent community project**, not an official TypeSafe product. It evaluates supplied writing; it does not generate a rewrite or establish that a passage is factually correct.
 
 [Contributing](CONTRIBUTING.md) · [Agent guide](AGENTS.md) · [TypeSafe API reference](https://docs.typesafe.ai/api)
 
@@ -19,7 +19,7 @@ The deployment has no server key on purpose. A public URL configured with one le
 Use the pnpm version pinned in [package.json](package.json), currently `10.34.5`, and keep `pnpm-lock.yaml` as the only dependency lockfile. The manifest declares Node.js `>=20`; use a version supported by the installed Next.js dependency as well. Node.js 22+ is a practical development baseline.
 
 ```sh
-git clone https://github.com/BunsDev/clarity-judge.git
+git clone https://github.com/TypeSafeAI/clarity-judge.git
 cd clarity-judge
 # Activate the pnpm version declared in package.json.
 # Where Corepack is installed, `corepack enable` enables its shims.
@@ -163,6 +163,6 @@ pnpm test:e2e   # browser suite against the build you just made
 
 ## Related community projects
 
-[TypeSafe AI Playground](https://github.com/BunsDev/typesafe-ai-playground) explores Jev experiments; [Jev Tool & Model Router](https://github.com/BunsDev/typesafe-router) separates route selection from execution; [TypeSafe UI](https://github.com/BunsDev/typesafe-ui) provides reusable interface components. These are separate repositories, not an automatically integrated product suite.
+[TypeSafe AI Playground](https://github.com/TypeSafeAI/typesafe-ai-playground) explores Jev experiments; [Jev Tool & Model Router](https://github.com/BunsDev/typesafe-router) separates route selection from execution; [TypeSafe UI](https://github.com/TypeSafeAI/typesafe-ui) provides reusable interface components. These are separate repositories, not an automatically integrated product suite.
 
 The proposed GitHub About description and discovery topics are recorded in [repository-metadata.json](repository-metadata.json). That file does not update GitHub settings automatically.

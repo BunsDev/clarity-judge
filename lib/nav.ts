@@ -26,4 +26,4 @@ export const externalLinks = [
   { href: "https://docs.typesafe.ai", label: "Docs" },
 ];
 
-export const GITHUB_URL = "https://github.com/BunsDev/clarity-judge";
+export const GITHUB_URL = "https://github.com/TypeSafeAI/clarity-judge";
