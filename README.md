@@ -148,6 +148,12 @@ The Vercel aliases redirect there permanently, keeping path and query, so the tw
 
 That origin is `SITE_URL` in `lib/social.ts`, and `next.config.ts` builds the redirects from the same value. Set a `SITE_URL` environment variable to point a fork or a staging deploy at its own domain.
 
+## Deployment
+
+A push to `main` in [`TypeSafeAI/clarity-judge`](https://github.com/TypeSafeAI/clarity-judge) runs CI, then builds and deploys to production on Vercel. The production environment deliberately holds no `TYPESAFE_API_KEY`, which is what keeps the public site in demo mode.
+
+Vercel reaches the repository through its GitHub App, installed on the `TypeSafeAI` organization. An app installation does not follow a repository between owners, so a transferred repository stops deploying until the app is installed for the new owner and the project is reconnected with `vercel git connect`. Until that is done, a push passes CI and silently never ships.
+
 ## Development checks
 
 ```sh
