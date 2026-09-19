@@ -1,6 +1,7 @@
 {
   "repository": "BunsDev/clarity-judge",
-  "description": "Community writing-quality evaluator powered by TypeSafe AI Jev, with independent rubric checks, confidence flags, source evidence, and a no-key demo.",
+  "homepage": "https://judge.jev.works",
+  "description": "Community writing-quality evaluator powered by TypeSafe AI Jev, with independent rubric checks, confidence flags, source evidence, and a public no-key demo at judge.jev.works.",
   "topics": [
     "typesafe-ai",
     "jev",

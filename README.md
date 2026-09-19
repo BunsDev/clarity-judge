@@ -6,7 +6,15 @@ This is an **independent community project** under `BunsDev`, not an official Ty
 
 [Contributing](CONTRIBUTING.md) · [Agent guide](AGENTS.md) · [TypeSafe API reference](https://docs.typesafe.ai/api)
 
-## Start with the no-key demo
+## Live demo
+
+**[judge.jev.works](https://judge.jev.works)** runs this app as a public demo. It carries **no server API key**, so every visitor sees deterministic simulated results, labeled as demo mode. Those show how the interface behaves, not Jev's measured performance, and nothing a visitor does there reaches TypeSafe.
+
+For real verdicts, open the key dialog and paste your own TypeSafe key. It is held in that browser's localStorage, travels only as a request header to the deployment's own `/api/judge` endpoint, and is never displayed again or stored by the deployment. Remove it from the same dialog when you are done, particularly on a shared machine.
+
+The deployment has no server key on purpose. A public URL configured with one lets any visitor spend its credits, so this one leaves it unset and asks each person to bring their own.
+
+## Run it locally
 
 Use the pnpm version pinned in [package.json](package.json), currently `10.34.5`, and keep `pnpm-lock.yaml` as the only dependency lockfile. The manifest declares Node.js `>=20`; use a version supported by the installed Next.js dependency as well. Node.js 22+ is a practical development baseline.
 
@@ -91,7 +99,7 @@ A server `TYPESAFE_API_KEY` stays on the server; the client receives only config
 
 A key entered in the browser is stored in localStorage and sent as the `x-typesafe-api-key` header to this deployment's `/api/judge` endpoint. The masked field reduces accidental screen exposure, but localStorage is not encrypted by the app and remains accessible to scripts on the origin and anyone with access to the browser profile. Users must trust the deployment handling their key. Remove browser keys on shared machines.
 
-Live judgment sends the submitted writing and checks to TypeSafe. Use synthetic text for demonstrations and consider confidentiality before submitting unpublished or sensitive material. A public deployment configured with a server key lets visitor requests spend that key's credits: add appropriate access controls, request limits, and provider-side budgets, or leave the server key unset for a no-key demo.
+Live judgment sends the submitted writing and checks to TypeSafe. Use synthetic text for demonstrations and consider confidentiality before submitting unpublished or sensitive material. A public deployment configured with a server key lets visitor requests spend that key's credits: add appropriate access controls, request limits, and provider-side budgets, or leave the server key unset for a no-key demo. The deployment at [judge.jev.works](https://judge.jev.works) takes the last option, so no visitor request can spend a key that is not their own.
 
 ### Repository safeguards
 
@@ -134,7 +142,7 @@ The UI provides actionable error messages and an expandable upstream response. T
 
 ## Canonical URL
 
-The app is served at **[judge.jev.works](https://judge.jev.works)**; the `clarity-judge.vercel.app` address is an alias of it. Canonical links, Open Graph URLs, and the generated preview images all name the branded domain, whichever host answered the request, so shared links and search results point at one address.
+The public demo is served at **[judge.jev.works](https://judge.jev.works)**; the `clarity-judge.vercel.app` address is an alias of it. Canonical links, Open Graph URLs, and the generated preview images all name the branded domain, whichever host answered the request, so shared links and search results point at one address.
 
 The Vercel aliases redirect there permanently, keeping path and query, so the two addresses never compete. Per-deployment URLs and branch previews are deliberately left alone, since they have to keep serving their own build until it is promoted.
 
